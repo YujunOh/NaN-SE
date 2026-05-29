@@ -1,4 +1,4 @@
-# EV Log — vibegate 12일
+# EV Log — softgate 12일
 
 매일 작업 마무리 시 측정. 형식 고정:
 

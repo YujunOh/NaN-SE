@@ -1,6 +1,6 @@
 # Metrics — Function Point + Earned Value
 
-vibegate가 측정하는 두 정량 지표(FP, EV)의 정의·계산 방식·자동화 메커니즘.
+softgate가 측정하는 두 정량 지표(FP, EV)의 정의·계산 방식·자동화 메커니즘.
 
 ## 1. Function Point (FP)
 
@@ -37,9 +37,9 @@ UFP (Unadjusted Function Points) = Σ (component count × weight)
 예시: EI 5개(Average) + EO 3개(High) + ILF 2개(Average)
 → 5×4 + 3×7 + 2×10 = 20 + 21 + 20 = **61 UFP**
 
-### 1.4 vibegate 자동 계산
+### 1.4 softgate 자동 계산
 
-`vibegate fp add <kind> <complexity>` CLI로 사용자가 component를 입력하면, 가중치 표를 기반으로 자동 합산.
+`softgate fp add <kind> <complexity>` CLI로 사용자가 component를 입력하면, 가중치 표를 기반으로 자동 합산.
 
 ```python
 WEIGHTS = {
@@ -51,7 +51,7 @@ WEIGHTS = {
 }
 ```
 
-가중치 표는 `vibegate/fp_counter.py`에 하드코딩 (외부 입력 변경 차단).
+가중치 표는 `softgate/fp_counter.py`에 하드코딩 (외부 입력 변경 차단).
 
 ## 2. Earned Value (EV)
 
@@ -78,13 +78,13 @@ WEIGHTS = {
 | ETC | EAC - AC | Estimate To Complete. 남은 예상 비용 |
 | VAC | BAC - EAC | Variance At Completion. 예상 최종 차이 |
 
-### 2.3 vibegate 자동 계산
+### 2.3 softgate 자동 계산
 
 - **PV**: `docs/WBS.md`의 "EV 가중치 누적" 컬럼 기준 일별 누적 % 자동 파싱
 - **EV**: 완료된 WBS task의 가중치 합계. commit 기반 자동 추정 (commit message에 task ID 매칭) + 사용자 확인
 - **AC**: 실제 투입 시간. 사용자가 입력하거나 git log timestamp 차이로 추정
 
-`vibegate wbs ev` CLI 실행 시 위 공식으로 자동 계산되어 `docs/EV_LOG.md`에 일별 스냅샷 기록.
+`softgate wbs ev` CLI 실행 시 위 공식으로 자동 계산되어 `docs/EV_LOG.md`에 일별 스냅샷 기록.
 
 ## 3. FP × EV 통합
 
@@ -99,19 +99,19 @@ WBS task의 PV 가중치 = (task에 속한 component의 FP 합) / (전체 프로
 - Track 1 task A의 FP 합 = 40
 - → task A의 PV 가중치 = 40 / 200 = **20%**
 
-이 매핑이 vibegate의 EV Tracker가 FP Counter 결과를 수용하는 인터페이스(`include_fp(fp_total)`)의 핵심.
+이 매핑이 softgate의 EV Tracker가 FP Counter 결과를 수용하는 인터페이스(`include_fp(fp_total)`)의 핵심.
 
 ## 4. 한계
 
 - **FP 산정의 주관성**: 복잡도(low/avg/high) 판정이 사람마다 다를 수 있는 상황. IFPUG 가이드라인을 따라도 ±20% 변동 가능. 동일 시스템을 5명이 산정하면 결과가 5개 나오는 게 일반적
-- **EV의 binary 완료 가정**: 실제로는 task가 50% 완료 같은 중간 상태로 존재. vibegate는 단순화 위해 binary(완료/미완료)로 처리. 부분 진척률을 따로 입력하는 옵션은 향후 추가 검토
+- **EV의 binary 완료 가정**: 실제로는 task가 50% 완료 같은 중간 상태로 존재. softgate는 단순화 위해 binary(완료/미완료)로 처리. 부분 진척률을 따로 입력하는 옵션은 향후 추가 검토
 - **AC의 시간 측정**: 자동 추정이 어려움. 사용자가 직접 입력하는 것이 정확. git log timestamp는 보조 지표
 
 ## 5. ISO 25010 매핑 (Process Log 연동)
 
 EV 측정 결과는 ISO 25010 품질 9축에 매핑되어 Process Log에서 시각화.
 
-| ISO 25010 축 | vibegate 측정 대응 |
+| ISO 25010 축 | softgate 측정 대응 |
 |---|---|
 | 기능적합성 | Requirement Coverage (요구사항 만족률) |
 | 성능효율성 | hook 응답 시간 (≤ 500ms 충족률) |

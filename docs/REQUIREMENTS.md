@@ -1,4 +1,4 @@
-# Requirements — vibegate 초안 (Day 1)
+# Requirements — softgate 초안 (Day 1)
 
 > Day 2에 페르소나·유스케이스 다이어그램·worst-case 시나리오 확장 예정.
 
@@ -9,8 +9,8 @@
 - Claude Code, ChatGPT, Cursor 등 여러 AI 코딩 도구 병행. 작년부터 AI에 대한 의존도가 크게 올라간 상황
 - React/Next.js를 백지에서 짜기 어려운 상황 인식이 페인포인트의 출발점
 - 다른 프로젝트에서 AI가 OAuth provider를 미리 5개 추상화해둬서, 그것을 지우고 단일 Google OAuth로 되돌리느라 반나절 날린 적이 있었음. 추측성 추상화가 실제로 도움 된 적이 거의 없었음
-- 개인 CLAUDE.md에 Karpathy 4원칙(Think Before Coding / Simplicity First / Surgical Changes / Goal-Driven Execution)을 박아둔 이유 자체가 이 페인의 산물. vibegate는 그 개인 룰을 자동화로 옮긴 시도
-- vibegate를 만든다고 해서 AI 맹신이 사라진다는 보장은 없는 상황. 도구가 인간 판단을 대체하지는 못함. 그래서 모든 모듈은 "검수는 사람"을 전제로 설계 (Section 6)
+- 개인 CLAUDE.md에 Karpathy 4원칙(Think Before Coding / Simplicity First / Surgical Changes / Goal-Driven Execution)을 박아둔 이유 자체가 이 페인의 산물. softgate는 그 개인 룰을 자동화로 옮긴 시도
+- softgate를 만든다고 해서 AI 맹신이 사라진다는 보장은 없는 상황. 도구가 인간 판단을 대체하지는 못함. 그래서 모든 모듈은 "검수는 사람"을 전제로 설계 (Section 6)
 
 ### P2: 주니어 개발자
 - 인턴 ~ 2년차
@@ -23,7 +23,7 @@
 
 ## 2. 페인포인트 (5W1H)
 
-| Who | What | When | Where | Why | How (vibegate 대응) |
+| Who | What | When | Where | Why | How (softgate 대응) |
 |---|---|---|---|---|---|
 | 바이브코더 | 요구사항 없이 곧장 구현 진입 | AI 도구 사용 시 | Claude Code/Cursor 세션 | 빠른 결과 욕구 + 도구가 강제 안 함 | Stage Gate — 요구사항 부재 시 Edit 차단 |
 | 주니어 | AI 출력의 SOLID 위반 미인지 | 코드 리뷰 직전 | 로컬 IDE | 5원칙 수동 검증 부담 | SOLID Judge — LLM judge로 자동 채점 |
@@ -53,9 +53,9 @@ Mermaid는 정식 `usecaseDiagram` 문법 미지원이라 `flowchart` 로 그림
 flowchart LR
     User((사용자))
     AI((AI Agent))
-    System((vibegate<br/>시스템))
+    System((softgate<br/>시스템))
 
-    subgraph vibegate
+    subgraph softgate
         UC01([UC-01<br/>요구사항 명시 후 코드 변경])
         UC02([UC-02<br/>요구사항 없이 Edit 호출])
         UC03([UC-03<br/>SOLID 위반 코드 제안])
@@ -86,7 +86,7 @@ flowchart LR
 
 ### 3.4 다이어그램 작업하며 발견한 점
 
-UC-03의 액터를 "AI Agent"로 잡았는데 사실 모호한 부분이 있는 상황. AI가 코드 제안하는 시점에 액터인지 vibegate 내부 모듈인지 경계가 흐림. application boundary 정의가 이 부분에 해당. ARCHITECTURE.md에서 vibegate의 application boundary를 명확히 그려둠 (특히 SOLID Judge의 LLM judge subagent가 외부 액터인지 내부 컴포넌트인지).
+UC-03의 액터를 "AI Agent"로 잡았는데 사실 모호한 부분이 있는 상황. AI가 코드 제안하는 시점에 액터인지 softgate 내부 모듈인지 경계가 흐림. application boundary 정의가 이 부분에 해당. ARCHITECTURE.md에서 softgate의 application boundary를 명확히 그려둠 (특히 SOLID Judge의 LLM judge subagent가 외부 액터인지 내부 컴포넌트인지).
 
 ## 4. 비기능 요구사항
 
@@ -158,7 +158,7 @@ sequenceDiagram
     DB-->>SG: (응답 지연, 5초 초과)
     Note over SG: Claude Code timeout
     SG-->>AI: hook 실패로 간주
-    AI->>U: "vibegate hook 응답 없음, 정상 진행"
+    AI->>U: "softgate hook 응답 없음, 정상 진행"
     Note over U,DB: 사용자가 모르는 사이 차단 무효화 ⚠️
 ```
 
@@ -203,7 +203,7 @@ sequenceDiagram
 
 검증(Verification)과 확인(Validation)은 결국 사람이 한다는 점이 핵심. 시스템·문서가 맞는지(검증), 그것이 사용자 요구에 타당한지(확인) 둘 다 사람의 판단 영역.
 
-이 원칙을 vibegate 모든 모듈의 핵심 설계 기준으로 채택. 도구는 hint를 생성하지만 ruling은 사용자가 한다.
+이 원칙을 softgate 모든 모듈의 핵심 설계 기준으로 채택. 도구는 hint를 생성하지만 ruling은 사용자가 한다.
 
 - **SOLID Judge**: LLM이 점수를 매기지만 사용자가 override 가능. Judge 결과는 보고용이지 강제용이 아님
 - **Stage**: 차단도 `--force` 우회 가능. 단 우회 시 EV Tracker에 "강제 진행" 마킹되어 회고에 반영
