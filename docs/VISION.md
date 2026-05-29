@@ -1,8 +1,8 @@
 # VISION — softgate
 
-## TL;DR
+## 요약
 
-softgate는 바이브코딩 시대의 TCP. unreliable AI coding 위에 SW공학 reliability를 얹는 검증·제약 프로토콜.
+softgate는 바이브코딩 시대의 TCP. 불안정한 AI 코딩 위에 SW공학 신뢰성을 얹는 검증·제약 프로토콜. AI가 만든 SW공학 위반을 단순 차단하는 게 아니라 학습 카드로 전환해 사용자가 원칙을 자연스럽게 익히게 만든다.
 
 ---
 
@@ -18,7 +18,7 @@ softgate는 바이브코딩 시대의 TCP. unreliable AI coding 위에 SW공학 
 
 ### "AI 스파게티"
 
-기능은 분명히 동작한다. 단 50명의 개발자가 서로 한 번도 마주친 적 없는 상태로 짠 것 같은 코드베이스. 통합 시점에야 드러나는 구조적 결함. 매 커밋마다 기술부채가 쌓이는 라인. 한 CTO의 표현으로는 "perfectly works until it catastrophically fails."
+기능은 분명히 동작한다. 다만 수십 명의 개발자가 서로 한 번도 협의한 적 없이 각자 짠 듯한 코드베이스가 만들어진다. 통합 시점에야 드러나는 구조적 결함. 매 커밋마다 기술부채가 쌓이는 라인. 한 CTO의 표현을 빌리면 "평소엔 완벽히 동작하다가 어느 순간 통째로 무너지는" 코드.
 
 ### "공장 컨베이어벨트"
 
@@ -35,14 +35,14 @@ softgate는 바이브코딩 시대의 TCP. unreliable AI coding 위에 SW공학 
 
 ---
 
-## 2. 동기 — 시류를 거스를 것이 아니라
+## 2. 동기 — 흐름을 막을 게 아니라 흐름 안에 원칙을 끼워넣는다
 
-바이브코딩은 사라지지 않는다. 개발자가 100% AI 없이 코드 짜는 시대로 되돌아가는 것도 비현실적. Karpathy 본인이 자기가 만든 용어를 "강도 1번" 정도로 평했음에도 시류는 이미 trajectory를 그렸다.
+바이브코딩은 사라지지 않는다. 개발자가 AI를 안 쓰던 시대로 되돌아가는 것도 비현실적. Karpathy가 처음 "vibe coding"이라는 용어를 만들었을 때는 "대충 결과만 보고 굴리는 느낌"이라는 가벼운 뉘앙스였지만, 1년 만에 산업 전반의 기본 모드가 됐다.
 
-선택지는 두 가지.
+그렇다면 선택지는 두 가지.
 
-1. **거스른다** — 바이브코딩 금지·교육·강제. 비현실적이고 효과도 제한적
-2. **현명하게 한다** — SW공학 원칙을 바이브코딩 흐름 안에 끼워넣어 품질을 보장한다
+1. **흐름을 막는다** — 바이브코딩 금지·교육·강제. 비현실적이고 효과도 제한적
+2. **흐름 안에 원칙을 끼워넣는다** — SW공학 원칙을 바이브코딩 흐름 그대로에 자연스럽게 끼워서 품질을 보장한다
 
 softgate는 두 번째 길에 베팅한다.
 
@@ -85,7 +85,7 @@ IP가 본질적으로 unreliable하지만 TCP 덕분에 사용자가 안심하�
 ### 핵심 2 — Stage (누락 검출 + 자동 제안)
 
 - SDLC 5단계(Requirement → Design → Dev → Test → Deploy) 누락 검출
-- **차단하지 않는다**. 검출·제안만 (사용자 짜증 회피)
+- **차단하지 않는다**. 검출하고 제안만 한다 (작업 흐름이 끊겨서 사용자가 도구를 끄게 되는 상황 회피)
 - AI 코드 변경 시도 시 누락 산출물 자동 안내 + 자동 생성 제안
 - 강제 게이트 도구와 정반대 메시지 — "부드러움"이 정체성
 - 결정적 가치: 단계 의식 자연스럽게 환기 + 진행 흐름 시각화
@@ -118,7 +118,159 @@ IP가 본질적으로 unreliable하지만 TCP 덕분에 사용자가 안심하�
 
 ---
 
-## 5. 차별점 — 기존 도구와의 위치
+## 5. 실제 작동 예시 — 하루의 시연
+
+글 설명만으로는 "그래서 뭐가 돌아간다는 건지" 잡히지 않을 수 있다. 실제 CLI 출력 형식으로 하루 흐름을 그려본다.
+
+### 5.1 요구사항 누락 검출
+
+사용자가 Claude Code에 자연어 지시.
+
+```
+> 결제 모듈 만들어줘
+```
+
+softgate Stage가 감지.
+
+```
+[softgate Stage]
+관련 REQ ID 없이 코드 변경을 시도합니다.
+
+→ [A] 자동 생성 / [M] 직접 입력 / [S] 건너뛰기
+```
+
+`[A]` 선택 시 softgate가 자동으로 골격을 만든다.
+
+```
+REQ-005 결제 처리 기능
+  AC-001 카드 정보 입력
+  AC-002 결제 실패 시 재시도 (최대 3회)
+  AC-003 영수증 자동 발송
+
+UC-005 사용자가 결제 시도
+  Actor: 사용자, PaymentGateway
+  Scenario: 카드 입력 → 인증 → 결제 → 영수증
+```
+
+이 골격은 사용자가 수정 가능. 채택 시 그대로 DB에 저장되고 Claude Code가 이어서 PaymentService 코드 작성.
+
+### 5.2 SOLID 위반 → 학습 카드
+
+Claude Code가 생성한 코드.
+
+```python
+class PaymentService:
+    def process_payment(self): ...
+    def send_email(self): ...
+    def log_audit(self): ...
+    def update_inventory(self): ...
+```
+
+softgate SOLID Judge가 채점.
+
+```
+SRP:       4/10  (책임 4개)
+Cohesion:  5/10
+Coupling:  6/10
+```
+
+threshold 미달이므로 학습 카드 자동 생성.
+
+```
+╭─ CARD-007 | SRP Violation 4/10 ──────────────────────╮
+│                                                       │
+│ 위반 이유:                                            │
+│   PaymentService가 결제, 이메일, 감사 로그, 재고      │
+│   업데이트를 모두 담당. 책임이 4개로 늘어남.          │
+│                                                       │
+│ 운영 단계 비용:                                       │
+│   재고 로직 변경 시 결제 모듈 회귀 테스트 전체가      │
+│   필요해져 배포 지연.                                 │
+│                                                       │
+│ Before:                                               │
+│   class PaymentService:                               │
+│       def process_payment(self): ...                  │
+│       def send_email(self): ...                       │
+│       def log_audit(self): ...                        │
+│       def update_inventory(self): ...                 │
+│                                                       │
+│ After:                                                │
+│   class PaymentService: ...        # 결제만           │
+│   class EmailNotifier: ...         # 영수증           │
+│   class AuditLogger: ...           # 감사             │
+│   class InventoryUpdater: ...      # 재고             │
+│                                                       │
+│ 학습 포인트:                                          │
+│   • SRP는 클래스가 변경되는 이유가 하나여야 한다는 원칙
+│   • 책임 분리는 테스트 격리에도 도움                  │
+│   • 변경 사유가 다르면 클래스도 다르게                │
+│                                                       │
+│ [A]ccept  [R]eject  [S]kip                            │
+╰───────────────────────────────────────────────────────╯
+```
+
+사용자가 `[A]` 누르면 카드 안의 재요청 prompt가 Claude Code에 자동 전송된다.
+
+```
+[softgate → Claude Code]
+PaymentService를 다음 4개로 분리하세요:
+- PaymentService (process_payment만)
+- EmailNotifier (send_email)
+- AuditLogger (log_audit)
+- InventoryUpdater (update_inventory)
+```
+
+Claude Code가 재작성 → softgate가 재채점 → SRP 8/10 통과.
+
+### 5.3 Commit 시점에 Traceability 자동 갱신
+
+```
+> git commit -m "결제 모듈 1차 구현 [REQ-005][UC-005]"
+```
+
+softgate Traceability가 commit 감지하고 매트릭스 갱신.
+
+```
+$ softgate trace
+
+REQ-005 → UC-005 → src/payment.py → tests/test_payment.py   complete
+REQ-004 → UC-004 → src/auth.py    → (없음)                   no_test
+REQ-003 → (없음)  →  -            →  -                       no_uc
+```
+
+테스트가 없는 REQ-004, UC가 없는 REQ-003을 한눈에 발견.
+
+### 5.4 하루를 마치며 — Progress Dashboard
+
+```
+$ softgate dashboard
+
+╭─ softgate Progress — 2026-05-29 ───────────────────╮
+│                                                     │
+│ 학습 카드                                           │
+│   생성: 12장                                        │
+│   채택: 9장 (75%)                                   │
+│   거절: 3장                                         │
+│                                                     │
+│ SOLID 통과율                                        │
+│   오늘: 67%  (전일 60% → +7%p)                      │
+│   7일 평균: 63%                                     │
+│                                                     │
+│ 연속 사용: 3일                                      │
+│                                                     │
+│ 자주 걸린 원칙                                      │
+│   SRP: 4회                                          │
+│   DIP: 3회                                          │
+│   Cohesion: 2회                                     │
+│                                                     │
+╰─────────────────────────────────────────────────────╯
+```
+
+차단당해서 짜증나는 게 아니라, 오늘 얼마나 학습했는지 + 통과율이 어떻게 올랐는지 시각화되는 보상 구조.
+
+---
+
+## 6. 차별점 — 기존 도구와의 위치
 
 상세 비교는 [COMPETITIVE.md](./COMPETITIVE.md). 솔직히 정리하면 각 모듈 단독으로는 비슷한 도구가 이미 존재.
 
@@ -136,7 +288,7 @@ softgate의 차별점은 다음에서 온다.
 
 ---
 
-## 6. 비전 — 사용 + 배포 가능 product로
+## 7. 비전 — 사용 + 배포 가능 product로
 
 본 12일 prototype은 비전의 0번째 단계. 본인이 직접 사용하면서 다음 흐름으로 확장.
 
@@ -149,7 +301,7 @@ softgate의 차별점은 다음에서 온다.
 
 ---
 
-## 7. PO·기획자 관점
+## 8. PO·기획자 관점
 
 본 프로젝트는 단순 학교 과제가 아니다. AI 코딩 도구 헤비유저로서 작성자가 매일 마주치는 실제 페인(추측성 추상화, 검증 없는 commit, 디버깅 비용 누적)을 도구화한 시도. 개인 CLAUDE.md에 박아둔 Karpathy 4원칙을 자동화로 옮기는 메타 인지에서 출발했다.
 
