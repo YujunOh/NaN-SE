@@ -1,109 +1,165 @@
-# Architecture — vibegate (Day 3 초안)
+# Architecture — softgate
 
-> Day 3 작업물. INTERFACES.md, Hook PoC 결과는 이 문서를 후속 수정한다.
+> 4 핵심 모듈 + 옵션 모듈 + Learning Card 시스템. 구현 단계 들어가면서 계속 수정될 가능성 있음.
 
 ## 0. 한 줄 요약
 
-6 모듈 + 5 Stage SAGA + hybrid (orchestration: 핵심 4 / choreography: 보조 2) + SQLite 단일 store + LLM judge subagent.
+4 핵심 모듈(SOLID Judge + Learning Card / Stage / Traceability / Progress Dashboard) + 3 옵션 모듈 + SQLite 단일 store + LLM judge subagent + Claude Code Hook 통합.
 
-## 1. 5 Stage (SAGA 패턴)
+## 1. 5 Stage (SAGA 패턴 — 부드러운 적용)
 
-vibegate의 5 Stage는 SDLC를 SAGA로 모델링한 결과. 각 Stage는 독립 트랜잭션이며, invariant를 만족해야 다음 Stage 진입 가능. 실패 시 보상 트랜잭션으로 이전 Stage로 rollback.
+softgate의 5 Stage는 SDLC를 SAGA로 모델링한 결과. 다만 강제 차단이 아니라 **누락 검출 + 자동 제안** 방식으로 적용.
 
-SAGA 패턴 자체는 1987년 분산 시스템 논문에서 정립된 것이고, 긴 트랜잭션을 잘게 잘라 독립 단위로 수행하면서 단계 간 ordering constraint(예: 결제 확인 후에만 배송 시작)를 두는 발상이 핵심. vibegate가 새로 만든 패턴이 아니라 SDLC 도메인으로 옮긴 응용에 해당하는 위치.
+SAGA 패턴 자체는 1987년 분산 시스템 논문에서 정립된 것이고, 긴 트랜잭션을 잘게 잘라 독립 단위로 수행하면서 단계 간 ordering constraint를 두는 발상이 핵심. softgate는 그 패턴을 SDLC 도메인에 적용하되, 사용자 짜증 유발을 회피하기 위해 보상 트랜잭션을 "자동 rollback"이 아닌 "사용자에게 누락 알림 + 자동 생성 제안"으로 부드럽게 재해석.
 
-| Stage | invariant (진입 조건) | 보상 트랜잭션 (실패 시) |
+| Stage | 기대 산출물 | 누락 검출 시 동작 |
 |---|---|---|
-| 1. Requirement | (없음, 시작 stage) | — |
-| 2. Design | Requirement 1개 이상 등록 + Acceptance Criteria 명시 | Stage 1로 복귀, 누락 항목 알림 |
-| 3. Dev | Design 문서 등록 + 영향 모듈 명시 | Stage 2로 복귀 |
-| 4. Test | diff가 SOLID Judge 통과 (점수 ≥ threshold) | Stage 3로 복귀, 재요청 |
-| 5. Deploy | 테스트 케이스 ≥ Acceptance Criteria 수 | Stage 4로 복귀 |
+| 1. Requirement | REQ-NNN 명시 + acceptance criteria | "관련 REQ ID 매핑 없음. 추가하시겠습니까?" 자동 제안 |
+| 2. Design | UC-NNN 명시 + 영향 모듈 | "UC 없음. 마크다운 템플릿 자동 생성?" 제안 |
+| 3. Dev | commit message에 `[REQ-NNN][UC-NNN]` 태그 | "태그 누락. 자동 매핑 후보 표시" |
+| 4. Test | pytest 파일 존재 | "테스트 누락. 4종 기본 케이스 자동 생성?" 제안 |
+| 5. Deploy | 통합 테스트 통과 + 문서 갱신 | "문서 drift 감지. 자동 갱신?" 제안 |
 
 ```mermaid
 stateDiagram-v2
     [*] --> Requirement
-    Requirement --> Design: invariant_R 충족
-    Design --> Dev: invariant_D 충족
-    Dev --> Test: invariant_Dev 충족
-    Test --> Deploy: invariant_T 충족
+    Requirement --> Design: REQ + AC 등록됨
+    Design --> Dev: UC 등록됨
+    Dev --> Test: 태그 매핑됨
+    Test --> Deploy: 테스트 통과
     Deploy --> [*]
 
-    Design --> Requirement: 보상 (Acceptance 누락)
-    Dev --> Design: 보상 (영향 모듈 미명시)
-    Test --> Dev: 보상 (SOLID 위반)
-    Deploy --> Test: 보상 (테스트 부족)
+    Requirement --> Requirement: 누락 시 자동 제안 (차단 X)
+    Design --> Design: 누락 시 자동 제안
+    Dev --> Dev: 태그 누락 시 자동 제안
+    Test --> Test: 테스트 누락 시 자동 생성 제안
 ```
 
-메모: 분산 시스템에서 흔히 인용되는 SOA SAGA 예시(주문 → 결제 → 재고 → 배송)는 비즈니스 트랜잭션 영역. vibegate의 5 Stage는 SDLC 프로세스 영역. 도메인이 다른데 같은 패턴이 적용되는 것이 SAGA의 일반성
+기존 SDLC 도구(claude-sdlc, agentic-sdlc, Superpowers 등)는 phase 흐름을 강제. softgate는 정반대로 **부드러운 제안**만 — 사용자 의사결정 우선.
 
-## 2. Choreography vs Orchestration — Hybrid 결정
+## 2. Choreography vs Orchestration — Hybrid
 
 SOA·마이크로서비스 영역에서 모듈 간 통신 방식은 크게 두 가지로 분류된다.
 
-- **Choreography**: 각 모듈이 자율적으로 이벤트를 발행·구독. 중앙 조정자 없음. 결합도 낮지만 흐름 추적 어려움
-- **Orchestration**: 중앙 조정자가 모듈 호출 순서 관리. 흐름 명확하지만 조정자가 단일 중단점(SPOF)
+- **Choreography**: 각 모듈이 자율적으로 이벤트 발행·구독. 중앙 조정자 없음. 결합도 낮음. 흐름 추적 어려움
+- **Orchestration**: 중앙 조정자가 모듈 호출 순서 관리. 흐름 명확. 단일 중단점(SPOF) 위험
 
-순수 choreography로 가면 6 모듈이 모두 이벤트 구독·발행. 디버깅 + state machine 추적 어려움. 순수 orchestration이면 Stage가 SPOF.
-
-**결정**: hybrid.
+softgate는 4 핵심 + 3 옵션의 hybrid.
 
 | 모듈 | 통신 방식 | 이유 |
 |---|---|---|
-| Stage | orchestration 중심 (state machine 관리) | 5 Stage SAGA의 중앙 조정자 역할 |
-| Process Log | orchestration (Stage가 호출) | trace state 공유 |
-| SOLID Judge | choreography (DiffSubmitted 이벤트 구독) | 독립 검증, Stage가 결과만 받음 |
-| UseCase Logger | choreography (사용자 직접 호출 + Stage 참조) | 사용자 입력 시점이 Stage와 무관 |
-| EV Tracker | choreography (StageCompleted 이벤트 구독) | 진척 측정은 비동기로 충분 |
-| FP Counter | choreography (사용자 입력 + EV Tracker가 polling) | 입력 시점 무관 |
+| SOLID Judge + Learning Card | orchestration (Stage가 호출) | 코드 변경 시점에 동기적으로 실행 필요 |
+| Stage | orchestration 중심 (state machine 관리) | SDLC 진행 상태의 중앙 조정자 역할 |
+| Traceability | choreography (CommitMade 이벤트 구독) | commit 발생 시점에 비동기 갱신 |
+| Progress Dashboard | choreography (CardJudged 이벤트 구독) | 학습 카드 검수 결과 비동기 집계 |
+| EV Tracker (옵션) | choreography (StageCompleted 구독) | 진척 측정 비동기 |
+| FP Counter (옵션) | choreography (사용자 직접 호출) | 사용자 입력 시점 무관 |
+| Process Log (옵션) | choreography (모든 이벤트 구독) | 전체 trace 비동기 집계 |
 
-→ Stage가 "최소 orchestration" 역할, 나머지는 choreography. 중앙 조정자 부하 분산 + 흐름 추적성을 절충한 결과
+Stage가 "최소 orchestration" 역할, 나머지는 choreography. 중앙 조정자 부하 분산 + 흐름 추적성 절충.
 
 ## 3. 모듈 구조 다이어그램
 
 ```mermaid
 flowchart TB
     User((사용자))
-    AnthropicAPI[Anthropic API<br/>LLM Judge]
+    AnthropicAPI[Anthropic API<br/>LLM]
 
-    subgraph "Claude Code 외부 hook 지점"
-        Hook1[PreToolUse hook]
-        Hook2[Stop hook]
+    subgraph "Claude Code Hook"
+        Hook1[PreToolUse]
+        Hook2[Stop]
+        Hook3[UserPromptSubmit]
     end
 
-    subgraph "vibegate 내부"
+    subgraph "softgate 핵심"
         SG[Stage<br/>orchestrator]
-        PL[Process Log]
         SJ[SOLID Judge]
-        UL[UseCase Logger]
+        LC[Learning Card<br/>Generator]
+        TR[Traceability]
+        PD[Progress Dashboard]
+        DB[(SQLite)]
+        Bus{이벤트 버스}
+    end
+
+    subgraph "softgate 옵션"
         EV[EV Tracker]
         FP[FP Counter]
-        DB[(SQLite)]
-        Bus{이벤트 버스<br/>SQLite-backed}
+        PL[Process Log]
     end
 
-    User --> UL
-    User --> FP
+    User --> SG
+    User --> PD
     Hook1 --> SG
-    Hook2 --> PL
+    Hook2 --> Bus
+    Hook3 --> Bus
 
-    SG <--> DB
-    SG --> Bus
-    Bus -.DiffSubmitted.-> SJ
+    SG --> DB
+    SG --> SJ
+    SJ --> LC
+    SJ <-->|judge call| AnthropicAPI
+    LC -->|content call| AnthropicAPI
+    LC --> DB
+    LC -->|채택 시 재요청 prompt| Hook3
+
+    Bus -.CommitMade.-> TR
+    Bus -.CardJudged.-> PD
     Bus -.StageCompleted.-> EV
-    SJ -->|subagent call| AnthropicAPI
-    UL --> DB
-    PL --> DB
+    Bus -.모든 이벤트.-> PL
+
+    TR --> DB
+    PD --> DB
     EV --> DB
     FP --> EV
+    PL --> DB
 ```
 
-이벤트 버스는 Day 4 구현에서 SQLite의 `events` 테이블로 시작. Future Work에서 publish/subscribe 미들웨어로 분리 가능.
+이벤트 버스는 초기 구현에서 SQLite의 `events` 테이블 polling으로 시작. Future Work에서 publish/subscribe 미들웨어(Redis Streams, NATS 등)로 분리 가능한 구조.
 
-## 4. SQLite 스키마 초안
+## 4. Learning Card 데이터 흐름 (핵심 차별점)
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant AI as AI Agent
+    participant Hook as PreToolUse hook
+    participant SG as Stage
+    participant SJ as SOLID Judge
+    participant LC as Learning Card Gen
+    participant LLM as Claude API
+    participant DB as SQLite
+
+    AI->>Hook: Edit 호출 (diff 생성)
+    Hook->>SG: 상태 확인
+    SG->>SJ: diff 채점 요청
+    SJ->>LLM: SOLID 5원칙 평가
+    LLM-->>SJ: 점수 + 자연어 근거
+
+    alt 위반 검출 (점수 < threshold)
+        SJ->>LC: 학습 카드 생성 요청
+        LC->>LLM: 카드 콘텐츠 생성 prompt
+        LLM-->>LC: 위반 이유 + Before/After + 학습 포인트
+        LC->>DB: 카드 저장
+        LC-->>U: 카드 표시
+        U->>LC: 검수 (채택/거절)
+        alt 채택
+            LC->>Hook: 재요청 prompt 자동 전송
+            Hook->>AI: 수정 지시 (자동)
+        else 거절
+            LC->>DB: 거절 사유 기록 (다음 prompt 개선용)
+        end
+    else 통과
+        SJ-->>Hook: 통과
+        Hook-->>AI: 진행 허용
+    end
+```
+
+LLM은 자연어 콘텐츠만 채우고, 데이터 모델·파이프라인·검수 로직·DB 저장·CLI 렌더링은 본인 구현. AI 생성물 취급 회피가 설계 원칙.
+
+자세한 학습 카드 시스템은 [LEARNING_CARDS.md](./LEARNING_CARDS.md).
+
+## 5. SQLite 스키마
 
 ```sql
--- 세션 메타
 CREATE TABLE sessions (
     id TEXT PRIMARY KEY,
     project_path TEXT NOT NULL,
@@ -111,35 +167,33 @@ CREATE TABLE sessions (
     ended_at TIMESTAMP
 );
 
--- 5 Stage state machine
 CREATE TABLE stages (
     id INTEGER PRIMARY KEY,
     session_id TEXT REFERENCES sessions(id),
     stage_name TEXT CHECK(stage_name IN ('Requirement','Design','Dev','Test','Deploy')),
     entered_at TIMESTAMP NOT NULL,
-    invariant_satisfied INTEGER DEFAULT 0,  -- bool
-    rollback_count INTEGER DEFAULT 0
+    missing_artifacts TEXT,
+    suggestions_made TEXT
 );
 
--- 요구사항 & 유스케이스
 CREATE TABLE requirements (
-    id TEXT PRIMARY KEY,  -- REQ-001 형식
+    id TEXT PRIMARY KEY,
     session_id TEXT REFERENCES sessions(id),
     title TEXT NOT NULL,
     kind TEXT CHECK(kind IN ('functional','non_functional')),
-    acceptance_criteria TEXT  -- JSON array
+    acceptance_criteria TEXT
 );
 
 CREATE TABLE usecases (
-    id TEXT PRIMARY KEY,  -- UC-001
+    id TEXT PRIMARY KEY,
     session_id TEXT REFERENCES sessions(id),
+    req_ids TEXT,
     actor TEXT NOT NULL,
     scenario TEXT NOT NULL,
-    mermaid TEXT,  -- 자동 생성된 다이어그램
-    include_uc_ids TEXT  -- JSON array of UC IDs
+    mermaid TEXT,
+    include_uc_ids TEXT
 );
 
--- SOLID 채점 결과
 CREATE TABLE solid_judgments (
     id INTEGER PRIMARY KEY,
     session_id TEXT REFERENCES sessions(id),
@@ -147,11 +201,50 @@ CREATE TABLE solid_judgments (
     srp_score INTEGER, ocp_score INTEGER, lsp_score INTEGER,
     isp_score INTEGER, dip_score INTEGER,
     cohesion_score INTEGER, coupling_score INTEGER,
-    judged_at TIMESTAMP,
-    user_accepted INTEGER  -- 사용자 최종 채택 여부 (검수는 사람)
+    judged_at TIMESTAMP
 );
 
--- WBS / EV
+-- 학습 카드 (핵심 차별점)
+CREATE TABLE learning_cards (
+    id TEXT PRIMARY KEY,
+    session_id TEXT REFERENCES sessions(id),
+    judgment_id INTEGER REFERENCES solid_judgments(id),
+    principle TEXT NOT NULL,
+    score INTEGER NOT NULL,
+    violation_reason TEXT,
+    cost_example TEXT,
+    before_code TEXT,
+    after_code TEXT,
+    learning_points TEXT,
+    revision_prompt TEXT,
+    generated_at TIMESTAMP NOT NULL,
+    user_accepted INTEGER,  -- 0=거절, 1=채택, NULL=미검수
+    user_feedback TEXT,
+    reviewed_at TIMESTAMP
+);
+
+CREATE TABLE traceability (
+    id INTEGER PRIMARY KEY,
+    req_id TEXT REFERENCES requirements(id),
+    uc_id TEXT REFERENCES usecases(id),
+    code_path TEXT,
+    test_path TEXT,
+    last_updated TIMESTAMP,
+    gap_type TEXT  -- 'no_uc' | 'no_code' | 'no_test' | 'complete'
+);
+
+CREATE TABLE dashboard_metrics (
+    id INTEGER PRIMARY KEY,
+    session_id TEXT REFERENCES sessions(id),
+    measured_at TIMESTAMP NOT NULL,
+    cards_total INTEGER,
+    cards_accepted INTEGER,
+    solid_pass_rate REAL,
+    streak_days INTEGER,
+    principle_distribution TEXT
+);
+
+-- 옵션
 CREATE TABLE wbs_tasks (
     id TEXT PRIMARY KEY,
     session_id TEXT REFERENCES sessions(id),
@@ -161,7 +254,6 @@ CREATE TABLE wbs_tasks (
     actual_cost REAL DEFAULT 0
 );
 
--- FP
 CREATE TABLE fp_items (
     id INTEGER PRIMARY KEY,
     session_id TEXT REFERENCES sessions(id),
@@ -170,75 +262,66 @@ CREATE TABLE fp_items (
     weight REAL NOT NULL
 );
 
--- transcript 분류 (Process Log)
 CREATE TABLE transcripts (
     id INTEGER PRIMARY KEY,
     session_id TEXT REFERENCES sessions(id),
     captured_at TIMESTAMP,
     stage_classified TEXT,
-    iso25010_dimension TEXT  -- 기능성/신뢰성/사용성/효율성/유지보수성/이식성
+    iso25010_dimension TEXT
 );
 
--- 강제 우회 로그 ("검수는 사람" 정책)
-CREATE TABLE force_overrides (
-    id INTEGER PRIMARY KEY,
-    session_id TEXT REFERENCES sessions(id),
-    stage_name TEXT,
-    reason TEXT NOT NULL,
-    forced_at TIMESTAMP
-);
-
--- 이벤트 버스 (choreography)
 CREATE TABLE events (
     id INTEGER PRIMARY KEY,
     session_id TEXT REFERENCES sessions(id),
-    event_type TEXT NOT NULL,  -- DiffSubmitted, StageCompleted, ...
-    payload TEXT,  -- JSON
+    event_type TEXT NOT NULL,
+    payload TEXT,
     published_at TIMESTAMP,
-    consumed_by TEXT  -- JSON array of module names
+    consumed_by TEXT
 );
 ```
 
-WAL 모드 활성화 (`PRAGMA journal_mode=WAL`). hook과 모듈 간 메모리 가시성·일관성 보장 위함.
+WAL 모드(`PRAGMA journal_mode=WAL`). hook과 모듈 간 메모리 가시성·일관성 보장.
 
-## 5. CLI 명령 체계
+## 6. CLI 명령 체계
 
 ```
-vibegate init                          # 현재 디렉토리에 .vibegate/ 생성, SQLite 초기화
-vibegate session start                 # 새 세션 시작 (Stage=Requirement)
-vibegate session status                # 현재 stage, EV, 진척률
-vibegate session end                   # Stop hook이 자동 호출, 수동도 가능
+softgate init                              # .softgate/ 생성, SQLite 초기화
+softgate session start                     # 새 세션 시작
+softgate session status                    # 현재 stage·미완 작업 표시
 
-vibegate req add <title> <kind>        # 요구사항 추가, REQ-NNN 부여
-vibegate req list
+softgate req add <title> <kind>            # REQ-NNN 부여
+softgate uc add <markdown_file>            # UC-NNN 부여, 한국어 양식 파싱
 
-vibegate usecase add <markdown_file>   # UC-NNN 부여, Mermaid 자동 생성
-vibegate usecase list
+softgate judge <diff>                      # SOLID 채점 (수동 호출)
+softgate cards                             # 미검수 학습 카드 목록
+softgate cards review <CARD-NNN>           # 카드 검수 (채택/거절)
+softgate cards stats                       # 카드 통계
 
-vibegate wbs add <title> <pv>          # WBS task 추가
-vibegate wbs ev                        # EV 계산 및 출력
+softgate trace                             # 전체 traceability 매트릭스 출력
+softgate trace gaps                        # 누락 항목만 표시
+softgate trace export                      # 한국 대학 과제 양식으로 export
 
-vibegate fp add <kind> <complexity>    # FP 항목 추가
-vibegate fp calc                       # FP 합계
+softgate dashboard                         # Progress Dashboard 표시
+softgate dashboard --html                  # HTML 출력
 
-vibegate report                        # Process Log 단계별 비율 + ISO 25010 매핑
-
-vibegate force --reason "..."          # Stage 우회 (사유 필수)
+# 옵션
+softgate ev                                # EV 계산
+softgate fp add <kind> <complexity>        # FP 입력
+softgate process-log                       # ISO 25010 매핑 표시
 ```
 
-## 6. Application Boundary
+## 7. Application Boundary
 
-SW공학에서 application boundary는 시스템이 다루는 영역과 외부 액터·의존성을 분리하는 경계선. vibegate의 경계:
+SW공학에서 application boundary는 시스템이 다루는 영역과 외부 액터·의존성을 분리하는 경계선. softgate의 경계.
 
 ```mermaid
 flowchart LR
-    subgraph "vibegate Application Boundary"
+    subgraph "softgate Application Boundary"
         SG[Stage]
-        UL[UseCase Logger]
         SJ[SOLID Judge]
-        EV[EV Tracker]
-        FP[FP Counter]
-        PL[Process Log]
+        LC[Learning Card]
+        TR[Traceability]
+        PD[Progress Dashboard]
         DB[(SQLite)]
     end
 
@@ -248,36 +331,38 @@ flowchart LR
     Git[로컬 git]
 
     User <--> SG
-    User <--> UL
-    User <--> EV
-    User <--> FP
+    User <--> PD
     CC -.hook.-> SG
-    CC -.hook.-> PL
-    SJ <-.subagent call.-> Ant
-    EV -.read commit log.-> Git
+    SJ <-.judge call.-> Ant
+    LC <-.content call.-> Ant
+    TR -.read commit log.-> Git
 ```
 
-**내부**: 6 모듈 + SQLite + LLM judge prompt.
+**내부**: 5 핵심 모듈 + SQLite + LLM judge·콘텐츠 prompt.
 **외부**: 사용자 + Claude Code agent + Anthropic API + git.
 
-LLM judge subagent는 *호출은 내부*, *실행은 외부 (Anthropic API)*. WC-04 (SQLite 손상)에서 외부 의존성 고려 시 이 경계가 보안·무결성 분석 기준이 됨.
+LLM judge·카드 콘텐츠 생성 subagent는 호출은 내부, 실행은 외부(Anthropic API). 코드·diff가 외부로 전송되는 점은 보안 관점 risk → Future Work의 TEE 기반 로컬 실행으로 향후 보강.
 
-## 7. 위험 대응 (REQUIREMENTS Section 5 worst-case와 매핑)
+## 8. 위험 대응
+
+REQUIREMENTS Section 5의 worst-case와 매핑.
 
 | WC | 대응 위치 | 메커니즘 |
 |---|---|---|
-| WC-01: hook 우회 | Stage | `Edit`/`Write`/`MultiEdit`/`NotebookEdit` + `Bash` 파일 수정 패턴까지 `PreToolUse` 등록. Day 3 PoC에서 검증. 한계: shell metacharacter로 우회 가능 → 100% 차단 불가, 보고서에 명시. |
-| WC-02: LLM judge 환각 | SOLID Judge | 재요청 최대 3회 → 초과 시 `force_overrides`에 마킹하고 사용자에게 ruling. |
-| WC-03: hook timeout | Stage | SQLite WAL + 동기 쓰기. 500ms 이내 응답. timeout 시 default-allow (안전 fallback). |
-| WC-04: SQLite 손상 | 전체 | 매일 VACUUM + `.bak` dump. 손상 감지 시 자동 복구 시도. |
-| WC-05: FP invalid 입력 | FP Counter | Pydantic validation, EV Tracker는 FP ≥ 0 contract. |
+| WC-01: hook 우회 | Stage | 다양한 도구 등록 + shell metacharacter는 잡기 어려움. 단 차단이 아닌 제안이라 우회 자체가 큰 문제 아님 |
+| WC-02: LLM judge 환각 | SOLID Judge | 재요청 최대 3회 후 사람 ruling |
+| WC-03: hook timeout | Stage | SQLite WAL + 동기 쓰기. 500ms 이내 응답. default-allow fallback |
+| WC-04: SQLite 손상 | 전체 | 매일 VACUUM + `.bak` dump |
+| WC-05: FP invalid 입력 | FP Counter | Pydantic validation |
+| WC-NEW: 학습 카드 환각 콘텐츠 | Learning Card | 사용자 검수 필수. 거절 시 사유 기록 → 다음 prompt 개선 |
+| WC-NEW: 한국어 commit 파싱 실패 | Traceability | 한국어/영어 혼용 commit 패턴 정의 + fallback regex |
 
-## 8. 설계 메모
+## 9. 설계 메모
 
-설계하면서 짚어둘 두 가지:
+설계하면서 짚어둘 두 가지.
 
-1. **5 Stage가 너무 워터폴 같지 않나** - 애자일 모델은 stage 경계가 흐린 편. vibegate가 워터폴을 강제하는 모양새이지만, 실제로는 한 세션 안에서 Stage 1↔2↔3 사이를 왔다갔다 할 수 있는 구조(보상 트랜잭션). 즉 애자일 스프린트 안의 SAGA에 가까운 형태. 보고서에 명시할 예정인 부분
+1. **5 Stage가 너무 워터폴 같지 않나** — 애자일은 stage 경계가 흐린 편. softgate가 워터폴을 강제하는 모양새이지만, 실제로는 차단하지 않고 검출·제안만 하므로 사용자가 자유롭게 stage를 오갈 수 있는 구조. 애자일 스프린트 안의 SAGA에 가까운 형태.
 
-2. **choreography 부분이 진짜 choreography인가** - SQLite `events` 테이블 polling으로 시작하는 구조라 엄격한 pub/sub은 아닌 상태. "poor man's choreography" 수준임을 정직하게 적어둠. FUTURE_WORK Section 1에서 진짜 pub/sub 미들웨어로 분리하는 것이 다음 단계
+2. **choreography 부분이 진짜 choreography인가** — SQLite `events` 테이블 polling으로 시작하는 구조라 엄격한 pub/sub은 아닌 상태. "poor man's choreography" 수준임을 정직하게 적어둠. FUTURE_WORK Section 1에서 진짜 pub/sub 미들웨어로 분리하는 것이 다음 단계.
 
-ARCHITECTURE는 구현 단계 들어가면서 계속 수정될 가능성 있음. 이 문서가 최종본이 아닌 상태
+ARCHITECTURE는 구현 단계 들어가면서 계속 수정될 가능성. 이 문서가 최종본이 아닌 상태.
