@@ -1,8 +1,8 @@
-# VISION — vibegate
+# VISION — softgate
 
 ## TL;DR
 
-vibegate는 바이브코딩 시대의 TCP. unreliable AI coding 위에 SW공학 reliability를 얹는 검증·제약 프로토콜.
+softgate는 바이브코딩 시대의 TCP. unreliable AI coding 위에 SW공학 reliability를 얹는 검증·제약 프로토콜.
 
 ---
 
@@ -44,7 +44,7 @@ vibegate는 바이브코딩 시대의 TCP. unreliable AI coding 위에 SW공학 
 1. **거스른다** — 바이브코딩 금지·교육·강제. 비현실적이고 효과도 제한적
 2. **현명하게 한다** — SW공학 원칙을 바이브코딩 흐름 안에 끼워넣어 품질을 보장한다
 
-vibegate는 두 번째 길에 베팅한다.
+softgate는 두 번째 길에 베팅한다.
 
 ---
 
@@ -52,37 +52,87 @@ vibegate는 두 번째 길에 베팅한다.
 
 TCP는 unreliable한 IP 위에서 reliability를 보장하는 프로토콜이다. 패킷 손실, 순서 뒤바뀜, 중복, 전달 실패 같은 IP의 한계를 handshake, ACK, retransmission, flow control, congestion control로 보완한다.
 
-vibegate는 같은 발상을 AI coding 도메인에 적용한다.
+softgate는 같은 발상을 AI coding 도메인에 적용한다.
 
-| 네트워크 개념 | vibegate 대응 |
+| 네트워크 개념 | softgate 대응 |
 |---|---|
 | **3-way handshake** | Stage 진입 전 invariant 확인 → AI agent 의도 확인 → Stage 승인 |
 | **Retransmission** | SOLID Judge 위반 시 자동 재요청. 최대 3회 후 사람이 ruling |
 | **Flow control** | hook 응답 ≤ 500ms — 사용자 작업 속도를 막지 않는 throughput 보장 |
 | **Congestion control** | LLM judge 환각으로 인한 무한 루프 방지. 혼잡 임계 시 사람에게 escalate |
 
-IP가 본질적으로 unreliable하지만 TCP 덕분에 사용자가 안심하고 웹브라우저를 여는 것처럼, AI coding agent의 본질적 불안정성에도 vibegate를 얹으면 사용자가 결과물을 안심하고 받을 수 있어야 한다는 것이 본 프로젝트의 가설.
+IP가 본질적으로 unreliable하지만 TCP 덕분에 사용자가 안심하고 웹브라우저를 여는 것처럼, AI coding agent의 본질적 불안정성에도 softgate를 얹으면 사용자가 결과물을 안심하고 받을 수 있어야 한다는 것이 본 프로젝트의 가설.
 
 ---
 
-## 4. 솔루션 — 6 모듈 + SAGA 5 Stage
+## 4. 솔루션 — 4 핵심 모듈 + 옵션
 
-상세 설계는 [ARCHITECTURE.md](./ARCHITECTURE.md). 요약:
+상세 설계는 [ARCHITECTURE.md](./ARCHITECTURE.md), 학습 카드 시스템은 [LEARNING_CARDS.md](./LEARNING_CARDS.md).
 
-- 5 Stage SAGA (Requirement → Design → Dev → Test → Deploy)
-- Stage 사이 invariant 자동 검증, 위반 시 보상 트랜잭션
-- 6 모듈 hybrid 통신 (Stage 중심 orchestration + 보조 모듈 choreography)
-- LLM judge subagent로 SOLID·응집도·결합도 자동 채점, 사용자가 최종 ruling
+### 핵심 1 — SOLID Judge + Learning Card Generator
+
+- 입력: git diff + 변경 파일 컨텍스트
+- LLM judge가 SOLID 5원칙 + 응집도 7단계 + 결합도 6단계 + 코드 스멜 자동 평가 (0-10점)
+- 위반 시 **학습 카드 자동 생성**:
+  - 위반 이유 (자연어 3-5줄)
+  - 운영 단계 비용 예시 (실제로 어떤 비용으로 돌아오는지)
+  - Before/After 코드 스니펫
+  - 재요청 prompt (AI agent에 보낼 수정 지시)
+- 사용자가 카드 검수·채택·거절. 거절 사유는 다음 카드 생성 시 prompt 개선에 반영
+- 채택 시 재요청 prompt가 AI agent에 자동 전송 → 최대 3회 → 초과 시 사람 ruling
+- 결정적 가치: 단순 채점이 아니라 **위반을 학습 기회로 전환**하는 폐쇄 루프
+
+### 핵심 2 — Stage (누락 검출 + 자동 제안)
+
+- SDLC 5단계(Requirement → Design → Dev → Test → Deploy) 누락 검출
+- **차단하지 않는다**. 검출·제안만 (사용자 짜증 회피)
+- AI 코드 변경 시도 시 누락 산출물 자동 안내 + 자동 생성 제안
+- 강제 게이트 도구와 정반대 메시지 — "부드러움"이 정체성
+- 결정적 가치: 단계 의식 자연스럽게 환기 + 진행 흐름 시각화
+
+### 핵심 3 — Traceability (한국어·과제 양식 특화)
+
+- REQ-001 ↔ UC-001 ↔ src/code.py ↔ tests/test_code.py 자동 매트릭스
+- commit message 태그 `[REQ-001][UC-001]` 매칭으로 자동 갱신
+- 누락 자동 알림: REQ 매핑 없음 / UC 코드 없음 / 코드 테스트 없음
+- **한국어 commit message + 한국 대학생 과제 양식 first-class** (영어권 traceability 도구와 차별)
+- 교수님 제출 포맷 자동 생성 (일별 진척 보고서, 형상관리 증빙)
+- 결정적 가치: 요구 변경 시 영향 범위 자동 추적 + 한국 대학 워크플로우 정착
+
+### 핵심 4 — Progress Dashboard
+
+- 학습 카드 풀이 기록 (총 풀이 수, 채택률, 거절 사유 분석)
+- SOLID 통과율 트렌드 (7일·30일·전체)
+- 연속 사용 일수(streak)
+- 모듈별 진척 (어떤 단계에서 자주 멈추는지)
+- 차트는 CLI rendering(rich library) 또는 간단한 HTML
+- 결정적 가치: "강제·채점·차단"이 아닌 **성취감 유발** UX. 학습이 누적되는 게 보이는 보상 구조
+
+### 옵션 모듈 (선택 사용)
+
+다음 모듈은 정량 지표·학교 과제 키워드 충족용. 핵심 가치는 위 4개에 집중.
+
+- **EV Tracker** — PV/EV/SPI/CPI 자동 계산
+- **FP Counter** — IFPUG 표준 FP 자동 산정
+- **Process Log** — ISO 25010 품질 9축 매핑 시각화
 
 ---
 
-## 5. 차별점
+## 5. 차별점 — 기존 도구와의 위치
 
-상세 비교는 [COMPETITIVE.md](./COMPETITIVE.md). 핵심:
+상세 비교는 [COMPETITIVE.md](./COMPETITIVE.md). 솔직히 정리하면 각 모듈 단독으로는 비슷한 도구가 이미 존재.
 
-- Claude Code, Cursor, Codex, opencode 같은 **agent를 대체하지 않는다**. agent 위에 hook으로 얹히는 control plane
-- SonarQube·ESLint 같은 정적 분석과 달리 **코드 작성 전 단계 진입 조건도 검증**
-- Harness.io 같은 CI/CD 도구와 다른 단계 — vibegate는 PR 이전 시점에 작동
+- **SOLID 채점 영역**: CodeRabbit, Greptile, Qodo, CodeAnt AI, Kodus 등 LLM 기반 AI 코드 리뷰 도구
+- **Traceability 영역**: shtracer, traceability-matrices, reqflow, Claude Plugin Hub의 traceability-check
+- **Process gate 영역**: Claude Code Hooks 자체에 27개 이상의 hook events. permission gate, quality gate
+
+softgate의 차별점은 다음에서 온다.
+
+1. **3 모듈 결합** — SOLID + Traceability + Stage를 하나의 control plane으로 통합한 도구는 현재 시점에 보이지 않는다
+2. **Hook 통합 지점** — 기존 도구는 대부분 PR 단계 또는 IDE 플러그인. softgate는 Claude Code hook으로 코드 작성 직후 inline 채점·검증
+3. **자동 재요청 prompt 생성** — 기존 LLM 리뷰는 코멘트만 남기고 끝. softgate는 AI agent에 다시 보낼 prompt까지 자동 생성하여 루프 폐쇄
+
+학교 과제 컨텍스트에서는 "혁신적 아이디어"보다 "어떻게 만들었는가(process)"가 평가 대상. 본인이 직접 구현하면서 SW공학 절차를 적용한 점이 가치.
 
 ---
 
@@ -103,7 +153,7 @@ IP가 본질적으로 unreliable하지만 TCP 덕분에 사용자가 안심하�
 
 본 프로젝트는 단순 학교 과제가 아니다. AI 코딩 도구 헤비유저로서 작성자가 매일 마주치는 실제 페인(추측성 추상화, 검증 없는 commit, 디버깅 비용 누적)을 도구화한 시도. 개인 CLAUDE.md에 박아둔 Karpathy 4원칙을 자동화로 옮기는 메타 인지에서 출발했다.
 
-product로서의 vibegate가 갖춰야 할 것:
+product로서의 softgate가 갖춰야 할 것:
 
 - **dogfooding 가치**: 작성자가 "이 도구 없으면 불안하다" 수준으로 매일 의존하는 흐름
 - **도입 마찰 최소화**: hook 1개 등록만으로 즉시 작동. 기존 워크플로우 변경 최소
