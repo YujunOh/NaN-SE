@@ -1,5 +1,7 @@
 # AI 도구 선정 근거
 
+> **피벗 반영(Day 5)**: 검출은 결정론적 메트릭(Metric Analyzer)이 하고 LLM은 확정된 위반을 학습 카드로 설명만 한다. 아래에서 옛 "SOLID Judge(LLM 채점)" 표현은 LLM 설명층(Learning Card)으로 정정한다. 경위는 DISCUSSION_LOG.md Day 5.
+
 과제 명세: "바이브코딩을 위한 인공지능은 자율적으로 선정 가능."
 
 선정: **Claude Code 단일 사용** (Anthropic, claude-opus-4-7)
@@ -16,7 +18,7 @@
 ## 2. 선정 근거
 
 1. **Hook 통합**: Claude Code의 `PreToolUse`, `Stop`, `UserPromptSubmit` hook이 Stage Gate의 차단 메커니즘과 1:1 매핑. 다른 도구는 이런 hook 미공개.
-2. **Subagent**: SOLID Judge의 LLM judge 호출에 Claude Agent SDK의 Task tool 사용. 별도 인프라 불필요.
+2. **Subagent**: LLM 설명층(Learning Card)의 카드 생성 호출에 Claude Agent SDK의 Task tool 사용. 별도 인프라 불필요.
 3. **비용 고정**: Max 5x 플랜으로 quota 충분 (12일간). FP Counter·EV Tracker 등 보조 모듈의 LLM 호출도 부담 없음.
 4. **카테고리 정렬**: multi-agent 실행 인프라(LangChain, LangGraph, agent harness 등) 카테고리에 Claude Code가 속함
 5. **dogfooding**: 본인이 매일 사용하는 도구. 12일간 softgate를 softgate로 만드는 메타 검증 가능.
@@ -25,7 +27,7 @@
 
 | Risk | 완충 |
 |---|---|
-| 단일 벤더 의존 → Anthropic API 장애 시 작업 중단 | 로컬 코드 작성·테스트는 Claude 없이도 가능. LLM judge만 일시 disable 후 수동 모드로 fallback. |
+| 단일 벤더 의존 → Anthropic API 장애 시 작업 중단 | 로컬 코드 작성·테스트는 Claude 없이도 가능. 검출(Metric Analyzer)은 LLM 없이 동작하고, LLM 설명층만 일시 disable 후 수동 모드로 fallback. |
 | 다른 도구와의 비교 부재 | 본 문서가 그 답변. Hook API 공개도 + 비용 구조로 정량 정당화. |
 | 다중 세션 = Brooks 법칙 인력 추가 | Day 4에 모든 세션 동시 출발, Day 7 이후 신규 세션 추가 금지. |
 
@@ -36,7 +38,7 @@
 본 과제 진행 정책:
 
 - **commit message**는 본인이 직접 작성. AI 자동 생성 commit 금지. `Co-Authored-By: Claude` 같은 자동 부착도 금지 (과제 산출물은 본인 산출물).
-- **AI 출력 채택 기준**: Day 8 통합 후부터는 softgate의 SOLID Judge가 매긴 점수를 *보조 지표*로 사용. 단, 최종 채택 여부는 본인이 결정. Judge가 통과시켜도 본인이 "이거 필요 없는 추상화 같은데"라고 판단하면 reject.
+- **AI 출력 채택 기준**: softgate의 결정론적 검출(Metric Analyzer)이 띄운 finding을 *보조 지표*로 사용. 단, 최종 채택 여부는 본인이 결정. finding이 없어도 본인이 "이거 필요 없는 추상화 같은데"라고 판단하면 reject. 메트릭이 못 잡는 위반이 있다는 전제(LECTURE_COVERAGE.md income_tax 예시)가 이 정책의 근거.
 - **Stage Gate 우회**: 본인이 `--force` 우회한 횟수는 EV Log에 마킹. 매일 회고에서 "오늘 왜 우회했나" 1줄로 기록 → 도구 자체의 false positive 패턴 발견용.
 - **AI 사용 로그**: `docs/AI_USAGE.md`에 일별 기록 (Day 2부터). 형식: "오늘 AI가 X 잘못 만들어서 내가 Y로 고쳤다. 다음엔 prompt를 Z로 바꿔보자". 정량 지표 아닌 본인 회고.
 

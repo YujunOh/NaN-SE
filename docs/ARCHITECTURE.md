@@ -1,10 +1,10 @@
-# Architecture — softgate
+# Architecture: softgate
 
-> 4 핵심 모듈 + 옵션 모듈 + Learning Card 시스템. 구현 단계 들어가면서 계속 수정될 가능성 있음.
+> **피벗 반영(Day 5)**: LLM 채점(SOLID Judge)을 폐기하고 결정론적 검출(Metric Analyzer: LCOM4, 순환복잡도)과 LLM 설명(Learning Card)으로 분리했다. 아래 다이어그램·표의 옛 "SOLID Judge" 노드는 검출층 Metric Analyzer로 읽는다. 검출은 LLM을 쓰지 않으므로 "LLM judge subagent"는 LLM 설명층 호출로 정정한다. 경위는 DISCUSSION_LOG.md Day 5.
 
 ## 0. 한 줄 요약
 
-4 핵심 모듈(SOLID Judge + Learning Card / Stage / Traceability / Progress Dashboard) + 3 옵션 모듈 + SQLite 단일 store + LLM judge subagent + Claude Code Hook 통합.
+핵심 폐루프(Metric Analyzer 검출 + Learning Card 설명) + Stage / Traceability(얇은 데모) + Progress Dashboard(설계) + SQLite 단일 store + LLM 설명층 subagent + Claude Code Hook 통합.
 
 ## 1. 5 Stage (SAGA 패턴 — 부드러운 적용)
 
@@ -48,7 +48,7 @@ softgate는 4 핵심 + 3 옵션의 hybrid.
 
 | 모듈 | 통신 방식 | 이유 |
 |---|---|---|
-| SOLID Judge + Learning Card | orchestration (Stage가 호출) | 코드 변경 시점에 동기적으로 실행 필요 |
+| Metric Analyzer + Learning Card | orchestration (Stage가 호출) | 코드 변경 시점에 동기적으로 실행 필요 |
 | Stage | orchestration 중심 (state machine 관리) | SDLC 진행 상태의 중앙 조정자 역할 |
 | Traceability | choreography (CommitMade 이벤트 구독) | commit 발생 시점에 비동기 갱신 |
 | Progress Dashboard | choreography (CardJudged 이벤트 구독) | 학습 카드 검수 결과 비동기 집계 |
@@ -73,7 +73,7 @@ flowchart TB
 
     subgraph "softgate 핵심"
         SG[Stage<br/>orchestrator]
-        SJ[SOLID Judge]
+        SJ[Metric Analyzer<br/>LCOM4·복잡도]
         LC[Learning Card<br/>Generator]
         TR[Traceability]
         PD[Progress Dashboard]
@@ -95,8 +95,7 @@ flowchart TB
 
     SG --> DB
     SG --> SJ
-    SJ --> LC
-    SJ <-->|judge call| AnthropicAPI
+    SJ -->|finding| LC
     LC -->|content call| AnthropicAPI
     LC --> DB
     LC -->|채택 시 재요청 prompt| Hook3
@@ -123,18 +122,17 @@ sequenceDiagram
     participant AI as AI Agent
     participant Hook as PreToolUse hook
     participant SG as Stage
-    participant SJ as SOLID Judge
+    participant SJ as Metric Analyzer
     participant LC as Learning Card Gen
     participant LLM as Claude API
     participant DB as SQLite
 
     AI->>Hook: Edit 호출 (diff 생성)
     Hook->>SG: 상태 확인
-    SG->>SJ: diff 채점 요청
-    SJ->>LLM: SOLID 5원칙 평가
-    LLM-->>SJ: 점수 + 자연어 근거
+    SG->>SJ: 메트릭 검출 요청
+    SJ->>SJ: LCOM4·순환복잡도 계산 (LLM 없음)
 
-    alt 위반 검출 (점수 < threshold)
+    alt 위반 검출 (임계 초과)
         SJ->>LC: 학습 카드 생성 요청
         LC->>LLM: 카드 콘텐츠 생성 prompt
         LLM-->>LC: 위반 이유 + Before/After + 학습 포인트
@@ -292,7 +290,7 @@ softgate session status                    # 현재 stage·미완 작업 표시
 softgate req add <title> <kind>            # REQ-NNN 부여
 softgate uc add <markdown_file>            # UC-NNN 부여, 한국어 양식 파싱
 
-softgate judge <diff>                      # SOLID 채점 (수동 호출)
+softgate analyze <file>                    # 결정론적 메트릭 검출 (LLM 없음)
 softgate cards                             # 미검수 학습 카드 목록
 softgate cards review <CARD-NNN>           # 카드 검수 (채택/거절)
 softgate cards stats                       # 카드 통계
@@ -318,7 +316,7 @@ SW공학에서 application boundary는 시스템이 다루는 영역과 외부 �
 flowchart LR
     subgraph "softgate Application Boundary"
         SG[Stage]
-        SJ[SOLID Judge]
+        SJ[Metric Analyzer<br/>LCOM4·복잡도]
         LC[Learning Card]
         TR[Traceability]
         PD[Progress Dashboard]
@@ -333,15 +331,14 @@ flowchart LR
     User <--> SG
     User <--> PD
     CC -.hook.-> SG
-    SJ <-.judge call.-> Ant
     LC <-.content call.-> Ant
     TR -.read commit log.-> Git
 ```
 
-**내부**: 5 핵심 모듈 + SQLite + LLM judge·콘텐츠 prompt.
+**내부**: 핵심 모듈 + SQLite + LLM 설명층 콘텐츠 prompt. 검출(Metric Analyzer)은 로컬 계산이라 외부 호출 없음.
 **외부**: 사용자 + Claude Code agent + Anthropic API + git.
 
-LLM judge·카드 콘텐츠 생성 subagent는 호출은 내부, 실행은 외부(Anthropic API). 코드·diff가 외부로 전송되는 점은 보안 관점 risk → Future Work의 TEE 기반 로컬 실행으로 향후 보강.
+카드 콘텐츠 생성 subagent만 호출은 내부, 실행은 외부(Anthropic API). 검출은 외부로 코드를 보내지 않고, 설명 카드 생성 시에만 코드가 전송된다. 이 전송이 보안 관점 risk → Future Work의 TEE 기반 로컬 실행으로 향후 보강.
 
 ## 8. 위험 대응
 
@@ -350,7 +347,7 @@ REQUIREMENTS Section 5의 worst-case와 매핑.
 | WC | 대응 위치 | 메커니즘 |
 |---|---|---|
 | WC-01: hook 우회 | Stage | 다양한 도구 등록 + shell metacharacter는 잡기 어려움. 단 차단이 아닌 제안이라 우회 자체가 큰 문제 아님 |
-| WC-02: LLM judge 환각 | SOLID Judge | 재요청 최대 3회 후 사람 ruling |
+| WC-02: LLM 설명층 환각 | Learning Card | 검출은 결정론적이라 환각 없음. 설명 카드는 사용자 검수 필수, 거절 시 사유 기록 |
 | WC-03: hook timeout | Stage | SQLite WAL + 동기 쓰기. 500ms 이내 응답. default-allow fallback |
 | WC-04: SQLite 손상 | 전체 | 매일 VACUUM + `.bak` dump |
 | WC-05: FP invalid 입력 | FP Counter | Pydantic validation |

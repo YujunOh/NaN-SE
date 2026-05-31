@@ -1,4 +1,6 @@
-# VISION — softgate
+# VISION: softgate
+
+> **피벗 반영(Day 5)**: 위반 검출은 결정론적 메트릭(Metric Analyzer: LCOM4, 순환복잡도)이 하고 LLM은 채점하지 않는다. 아래 옛 "SOLID Judge" 표현은 검출층(Metric Analyzer)으로 정정한다. 경위는 DISCUSSION_LOG.md Day 5.
 
 ## 요약
 
@@ -57,9 +59,9 @@ softgate는 같은 발상을 AI coding 도메인에 적용한다.
 | 네트워크 개념 | softgate 대응 |
 |---|---|
 | **3-way handshake** | Stage 진입 전 invariant 확인 → AI agent 의도 확인 → Stage 승인 |
-| **Retransmission** | SOLID Judge 위반 시 자동 재요청. 최대 3회 후 사람이 ruling |
-| **Flow control** | hook 응답 ≤ 500ms — 사용자 작업 속도를 막지 않는 throughput 보장 |
-| **Congestion control** | LLM judge 환각으로 인한 무한 루프 방지. 혼잡 임계 시 사람에게 escalate |
+| **Retransmission** | Metric Analyzer 위반 검출 시 학습 카드 재요청. 최대 3회 후 사람이 ruling |
+| **Flow control** | hook 응답 ≤ 500ms. 사용자 작업 속도를 막지 않는 throughput 보장 |
+| **Congestion control** | LLM 설명층 환각으로 인한 무한 루프 방지. 혼잡 임계 시 사람에게 escalate |
 
 IP가 본질적으로 unreliable하지만 TCP 덕분에 사용자가 안심하고 웹브라우저를 여는 것처럼, AI coding agent의 본질적 불안정성에도 softgate를 얹으면 사용자가 결과물을 안심하고 받을 수 있어야 한다는 것이 본 프로젝트의 가설.
 
@@ -69,20 +71,20 @@ IP가 본질적으로 unreliable하지만 TCP 덕분에 사용자가 안심하�
 
 상세 설계는 [ARCHITECTURE.md](./ARCHITECTURE.md), 학습 카드 시스템은 [LEARNING_CARDS.md](./LEARNING_CARDS.md).
 
-### 핵심 1 — SOLID Judge + Learning Card Generator
+### 핵심 1: Metric Analyzer(검출) + Learning Card Generator(설명)
 
-- 입력: git diff + 변경 파일 컨텍스트
-- LLM judge가 SOLID 5원칙 + 응집도 7단계 + 결합도 6단계 + 코드 스멜 자동 평가 (0-10점)
-- 위반 시 **학습 카드 자동 생성**:
+- 입력: 변경 파일 소스
+- Metric Analyzer가 LCOM4(SRP·모듈성)·순환복잡도를 결정론적으로 계산해 임계 초과를 finding으로 검출 (LLM 없음). SOLID 전체·응집도 7단계·결합도 6단계 명칭 분류는 범위 밖
+- 위반 검출 시 **LLM 설명층이 학습 카드 생성**:
   - 위반 이유 (자연어 3-5줄)
   - 운영 단계 비용 예시 (실제로 어떤 비용으로 돌아오는지)
   - Before/After 코드 스니펫
   - 재요청 prompt (AI agent에 보낼 수정 지시)
 - 사용자가 카드 검수·채택·거절. 거절 사유는 다음 카드 생성 시 prompt 개선에 반영
 - 채택 시 재요청 prompt가 AI agent에 자동 전송 → 최대 3회 → 초과 시 사람 ruling
-- 결정적 가치: 단순 채점이 아니라 **위반을 학습 기회로 전환**하는 폐쇄 루프
+- 결정적 가치: 단순 검출이 아니라 **위반을 학습 기회로 전환**하는 폐쇄 루프
 
-### 핵심 2 — Stage (누락 검출 + 자동 제안)
+### 핵심 2: Stage (누락 검출 + 자동 제안)
 
 - SDLC 5단계(Requirement → Design → Dev → Test → Deploy) 누락 검출
 - **차단하지 않는다**. 검출하고 제안만 한다 (작업 흐름이 끊겨서 사용자가 도구를 끄게 되는 상황 회피)
@@ -166,18 +168,18 @@ class PaymentService:
     def update_inventory(self): ...
 ```
 
-softgate SOLID Judge가 채점.
+softgate Metric Analyzer가 결정론적으로 검출.
 
 ```
-SRP:       4/10  (책임 4개)
-Cohesion:  5/10
-Coupling:  6/10
+LCOM4:     4   (연결 요소 4개 = 책임 분리 신호)
+임계:      1   초과
+순환복잡도: 임계 10 이내
 ```
 
-threshold 미달이므로 학습 카드 자동 생성.
+LCOM4가 임계를 넘으므로 LLM 설명층이 학습 카드 자동 생성.
 
 ```
-╭─ CARD-007 | SRP Violation 4/10 ──────────────────────╮
+╭─ CARD-007 | SRP Violation LCOM4=4 ───────────────────╮
 │                                                       │
 │ 위반 이유:                                            │
 │   PaymentService가 결제, 이메일, 감사 로그, 재고      │
@@ -274,7 +276,7 @@ $ softgate dashboard
 
 상세 비교는 [COMPETITIVE.md](./COMPETITIVE.md). 솔직히 정리하면 각 모듈 단독으로는 비슷한 도구가 이미 존재.
 
-- **SOLID 채점 영역**: CodeRabbit, Greptile, Qodo, CodeAnt AI, Kodus 등 LLM 기반 AI 코드 리뷰 도구
+- **메트릭 검출 영역**: SonarQube, radon 등 정적 분석 도구. LLM 코드 리뷰(CodeRabbit, Greptile, Qodo 등)도 코멘트를 남김. softgate 차별점은 검출 자체가 아니라 검출→설명→검수 폐루프
 - **Traceability 영역**: shtracer, traceability-matrices, reqflow, Claude Plugin Hub의 traceability-check
 - **Process gate 영역**: Claude Code Hooks 자체에 27개 이상의 hook events. permission gate, quality gate
 
@@ -292,7 +294,7 @@ softgate의 차별점은 다음에서 온다.
 
 본 12일 prototype은 비전의 0번째 단계. 본인이 직접 사용하면서 다음 흐름으로 확장.
 
-1. **즉시 (현재)**: 본인 일상 코딩에 dogfooding. 매일 SOLID Judge·Stage가 본인을 어떻게 막거나 통과시키는지 관찰
+1. **즉시 (현재)**: 본인 일상 코딩에 dogfooding. 매일 Metric Analyzer·Stage가 본인을 어떻게 막거나 통과시키는지 관찰
 2. **단기 (1-3개월)**: choreography 이벤트 버스 정식 분리 (Redis Streams 등). Cursor·opencode 등 multi-vendor 어댑터
 3. **중기 (3-6개월)**: TEE 기반 로컬 실행. 기업·민감 도메인 진입 가능
 4. **장기 (6-12개월)**: SaaS 단계. 팀 안에서 한 사람이 뭘 하는지 다른 사람이 자동으로 알 수 있는 협업 트래킹

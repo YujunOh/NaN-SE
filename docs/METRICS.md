@@ -1,4 +1,6 @@
-# Metrics — Function Point + Earned Value
+# Metrics: Function Point + Earned Value
+
+> **피벗 반영(Day 5)**: 검출은 결정론적 메트릭(LCOM4, 순환복잡도)이 하고 LLM은 채점하지 않는다. 아래 ISO 25010 매핑의 옛 "SOLID Judge" 표현은 결정론적 검출(Metric Analyzer)로 정정한다. FP/EV는 보고서 설계 범위로, 현재 구현은 검출·설명 폐루프에 한정한다.
 
 softgate가 측정하는 두 정량 지표(FP, EV)의 정의·계산 방식·자동화 메커니즘.
 
@@ -117,9 +119,9 @@ EV 측정 결과는 ISO 25010 품질 9축에 매핑되어 Process Log에서 시�
 | 성능효율성 | hook 응답 시간 (≤ 500ms 충족률) |
 | 호환성 | (Future Work - multi-vendor) |
 | 사용성 | CLI 명령 사용 빈도 (간접) |
-| 신뢰성 | SOLID Judge 통과율 |
+| 신뢰성 | 검출 finding 해소율 (Metric Analyzer) |
 | 보안성 | (Future Work - TEE) |
-| 유지보수성 | 응집도/결합도 점수 (SOLID Judge) |
+| 유지보수성 | LCOM4(모듈성)·순환복잡도(분석성) |
 | 이식성 | (Future Work - multi-vendor) |
 | 안전성 | force_overrides 빈도 (낮을수록 안전) |
 

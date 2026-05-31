@@ -1,10 +1,12 @@
-# Learning Card System — softgate
+# Learning Card System: softgate
+
+> **피벗 반영(Day 5)**: 위반 검출은 결정론적 메트릭(Metric Analyzer: LCOM4, 순환복잡도)이 하고, LLM은 확정된 finding을 학습 카드로 설명만 한다. 아래 옛 "SOLID Judge" 표현은 검출층(Metric Analyzer)으로 정정한다. 경위는 DISCUSSION_LOG.md Day 5.
 
 핵심 차별점인 학습 카드 시스템의 데이터 모델·생성 파이프라인·검수 흐름·CLI 인터페이스를 정리한 문서.
 
 ## 0. 한 줄 요약
 
-SOLID Judge가 위반을 검출하면 단순 코멘트로 끝내지 않고, "왜 위반인지 + 운영 단계 비용 + Before/After + 재요청 prompt"로 구성된 학습 카드를 자동 생성. 사용자가 검수·채택하면 재요청 prompt가 AI agent에 자동 전송되어 폐쇄 루프를 형성한다.
+Metric Analyzer가 결정론적으로 위반을 검출하면 단순 코멘트로 끝내지 않고, LLM 설명층이 "왜 위반인지 + 운영 단계 비용 + Before/After + 재요청 prompt"로 구성된 학습 카드를 생성. 사용자가 검수·채택하면 재요청 prompt가 AI agent에 자동 전송되어 폐쇄 루프를 형성한다.
 
 ## 1. 왜 학습 카드인가
 
@@ -37,7 +39,7 @@ class LearningCard(BaseModel):
     # 식별
     id: str  # CARD-001
     session_id: str
-    judgment_id: int  # SOLID Judge 채점 결과 ID
+    finding_id: int  # Metric Analyzer 검출 finding ID
     
     # 채점 결과
     principle: Principle
@@ -152,7 +154,7 @@ flowchart LR
     User -->|거절| Reject[user_accepted=False<br/>+ feedback 입력]
     Accept --> SendRevision[재요청 prompt<br/>AI agent에 전송]
     Reject --> LogFeedback[거절 사유<br/>DB 저장]
-    SendRevision --> ReJudge[AI 수정 후<br/>재채점]
+    SendRevision --> ReCheck[AI 수정 후<br/>재검출]
     LogFeedback --> ImprovePrompt[다음 카드 생성 시<br/>prompt 개선 데이터]
 ```
 
