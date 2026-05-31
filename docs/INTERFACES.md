@@ -1,7 +1,7 @@
-# Interfaces — 4 Track 인터페이스 명세 (Day 3 초안)
+# Interfaces — softgate
 
-> Day 4 병렬 개발 시작 전 인터페이스 합의 (WBS Risk #1 완충).
-> Python `Protocol` + `dataclass` 기반. 구현은 Day 4-7에서.
+> 4 핵심 모듈 + 옵션 모듈의 Protocol/dataclass 기반 인터페이스 명세.
+> 구현 단계 진입 전 인터페이스 합의 (통합 단계 risk 완충).
 
 ## 0. 왜 Protocol인가
 
@@ -13,41 +13,243 @@
 from typing import Protocol, Literal
 from dataclasses import dataclass
 from datetime import datetime
+from pydantic import BaseModel
+from enum import Enum
 
 StageName = Literal['Requirement', 'Design', 'Dev', 'Test', 'Deploy']
 FPKind = Literal['EI', 'EO', 'EQ', 'ILF', 'EIF']
 Complexity = Literal['low', 'avg', 'high']
+
+class Principle(str, Enum):
+    SRP = "Single Responsibility"
+    OCP = "Open-Closed"
+    LSP = "Liskov Substitution"
+    ISP = "Interface Segregation"
+    DIP = "Dependency Inversion"
+    HIGH_COHESION = "High Cohesion"
+    LOW_COUPLING = "Low Coupling"
 
 
 @dataclass
 class Event:
     """이벤트 버스 단위 — choreography 모듈이 구독."""
     session_id: str
-    event_type: str  # e.g. 'DiffSubmitted', 'StageCompleted'
+    event_type: str  # e.g. 'CommitMade', 'CardJudged', 'StageCompleted'
     payload: dict
     published_at: datetime
 ```
 
-## 2. Track 1 — Stage Gate + Process Log
+## 2. 핵심 1 — Metric Analyzer (검출) + Learning Card Generator (설명)
+
+> Day 5 결정으로 검출과 설명을 분리했다. 검출은 결정적 정적 분석이라 LLM을
+> 호출하지 않고 같은 입력에 같은 출력을 낸다. LLM은 설명(학습 카드)만 채운다.
+> 이유는 DISCUSSION_LOG 2026-05-31 참조.
 
 ```python
 @dataclass
-class GateDecision:
-    allowed: bool
-    reason: str  # 사용자에게 표시될 차단 사유
-    suggested_action: str | None  # 다음에 뭘 해야 하는지
+class ClassMetrics:
+    """한 클래스의 결정적 메트릭. 같은 소스에 항상 같은 값."""
+    class_name: str
+    lcom4: int           # 응집도 결손, 연결 요소 수. 1이 이상적
+    cbo: int             # 결합도 (Coupling Between Objects)
+    wmc: int             # 가중 메서드 수
+    cyclomatic_max: int  # 메서드별 순환복잡도 최댓값
+    method_count: int
+    param_max: int       # 메서드 매개변수 개수 최댓값
 
 
-class StageGate(Protocol):
-    """SAGA 5단계 state machine + PreToolUse hook 진입점."""
-    def check(self, current_stage: StageName, tool_name: str) -> GateDecision: ...
-    def transition(self, to_stage: StageName) -> bool: ...
-    def rollback(self) -> None: ...
-    def force(self, reason: str) -> None:
-        """사용자 명시 우회. force_overrides 테이블에 기록."""
+@dataclass
+class MetricFinding:
+    """임계값을 넘은 메트릭 하나. SOLID 원칙에 매핑된다."""
+    class_name: str
+    metric: str          # 'lcom4', 'cbo', 'cyclomatic', ...
+    value: float
+    threshold: float
+    principle: Principle  # lcom4->SRP, cbo->LOW_COUPLING, ...
+    severity: int        # 0-10, 임계값 초과 정도
+
+
+class MetricAnalyzer(Protocol):
+    """결정적 검출층. LLM 호출 없음. Stage가 Edit/commit 시점에 호출.
+
+    LCOM4는 직접 구현(softgate/metrics/lcom.py), 순환복잡도 등은 radon 통합.
+    """
+    def analyze(self, source: str) -> list[ClassMetrics]: ...
+    def findings(self, metrics: list[ClassMetrics]) -> list[MetricFinding]:
+        """임계값 초과 항목만 골라 SOLID 원칙에 매핑."""
         ...
+```
+
+SOLID별 결정적 검출 가능성은 다르다. SRP·DIP·결합도·응집도는 메트릭 proxy가
+탄탄하고, OCP·ISP는 부분, LSP는 본질적으로 기계화 불가다. LSP/OCP의 모호한
+부분은 검출하지 않고 사람 판단에 맡긴다. 즉 MetricFinding은 자신 있는 위반만
+올린다.
+
+```python
+# 학습 카드 시스템 — 자세한 명세는 LEARNING_CARDS.md
+class LearningCard(BaseModel):
+    id: str  # CARD-001
+    session_id: str
+    finding_id: int  # MetricFinding 식별자
+    principle: Principle
+    severity: int    # MetricFinding.severity 복사 (0-10)
+    code_hash: str
+
+    # LLM이 채우는 콘텐츠 (자연어 설명만, 채점 아님)
+    violation_reason: str
+    cost_example: str
+    before_code: str
+    after_code: str
+    learning_points: list[str]
+    revision_prompt: str
+
+    # 본인이 짠 검수 로직
+    user_accepted: bool | None
+    user_feedback: str | None
+
+    generated_at: datetime
+    reviewed_at: datetime | None
 
 
+class LearningCardGenerator(Protocol):
+    """MetricAnalyzer가 finding을 올리면 호출. 학습 카드 자동 생성.
+
+    LLM은 자연어 콘텐츠만 채운다. 메트릭 값과 위반 판정은 이미 결정적으로 끝났다.
+    """
+    def generate(self, finding: MetricFinding, code: str) -> LearningCard: ...
+    def review(self, card_id: str, accepted: bool, feedback: str | None = None) -> None: ...
+    def get_unreviewed(self) -> list[LearningCard]: ...
+    def send_revision_to_agent(self, card_id: str) -> bool:
+        """채택된 카드의 재요청 prompt를 AI agent에 전송."""
+        ...
+```
+
+## 3. 핵심 2 — Stage (누락 검출 + 자동 제안)
+
+```python
+@dataclass
+class StageStatus:
+    current_stage: StageName
+    missing_artifacts: list[str]  # 예: ["REQ-005", "tests/test_payment.py"]
+    suggestions: list[str]        # 자동 제안 메시지
+
+
+class Stage(Protocol):
+    """SDLC 5단계 state machine + PreToolUse hook 진입점. 차단하지 않고 제안만 한다."""
+    def current_status(self) -> StageStatus: ...
+    def detect_missing(self, action: str, context: dict) -> list[str]:
+        """AI agent의 action에 대해 누락된 산출물 목록 반환."""
+        ...
+    def suggest(self, missing: list[str]) -> list[str]:
+        """누락 항목에 대한 자동 제안 메시지 생성."""
+        ...
+    def transition(self, to_stage: StageName) -> bool: ...
+```
+
+## 4. 핵심 3 — Traceability (한국어/과제 양식 특화)
+
+```python
+@dataclass
+class TraceabilityRow:
+    req_id: str | None
+    uc_id: str | None
+    code_path: str | None
+    test_path: str | None
+    gap_type: Literal['no_uc', 'no_code', 'no_test', 'complete']
+
+
+@dataclass
+class UseCase:
+    id: str  # UC-NNN
+    req_ids: list[str]
+    actor: str
+    scenario: str
+    mermaid: str | None
+    include_uc_ids: list[str]
+    extend_uc_id: str | None
+
+
+class Traceability(Protocol):
+    """commit message 태그 매칭으로 자동 갱신. 한국어 commit 패턴 first-class."""
+    def add_requirement(self, req_id: str, title: str, ac: list[str]) -> None: ...
+    def add_usecase(self, markdown: str) -> UseCase: ...
+    def parse_korean_commit(self, message: str) -> dict:
+        """한국어 commit message에서 [REQ-001][UC-001] 태그 추출."""
+        ...
+    def matrix(self) -> list[TraceabilityRow]: ...
+    def gaps(self) -> list[TraceabilityRow]:
+        """gap_type != 'complete'인 행만 반환."""
+        ...
+    def export_korean_assignment_format(self) -> str:
+        """한국 대학 과제 양식(일별 진척 보고서, 형상관리 증빙)으로 export."""
+        ...
+```
+
+## 5. 핵심 4 — Progress Dashboard
+
+```python
+@dataclass
+class DashboardSnapshot:
+    cards_total: int
+    cards_accepted: int
+    cards_rejected: int
+    acceptance_rate: float
+    solid_pass_rate_7d: float
+    solid_pass_rate_30d: float
+    streak_days: int
+    principle_distribution: dict[Principle, int]  # 위반 빈도 분포
+    measured_at: datetime
+
+
+class ProgressDashboard(Protocol):
+    """CardJudged 이벤트 구독 + 비동기 집계."""
+    def snapshot(self) -> DashboardSnapshot: ...
+    def streak(self) -> int:
+        """연속 사용 일수 (학습 카드 검수 활동 기준)."""
+        ...
+    def render_cli(self) -> str:
+        """rich library로 CLI 패널 렌더링."""
+        ...
+    def render_html(self) -> str:
+        """간단한 HTML 출력 (선택)."""
+        ...
+```
+
+## 6. 옵션 모듈 — EV / FP / Process Log
+
+```python
+# 옵션 1 — FP Counter
+@dataclass
+class FPItem:
+    kind: FPKind
+    complexity: Complexity
+    weight: float  # IFPUG 표준 가중치 표 참조 (METRICS.md Section 1.2)
+
+
+class FPCounter(Protocol):
+    def add(self, kind: FPKind, complexity: Complexity) -> FPItem: ...
+    def total(self) -> float: ...
+    def by_kind(self) -> dict[FPKind, float]: ...
+
+
+# 옵션 2 — EV Tracker
+@dataclass
+class EVSnapshot:
+    pv: float
+    ev: float
+    ac: float
+    spi: float
+    cpi: float
+    fp_total: float | None
+
+
+class EVTracker(Protocol):
+    def measure(self) -> EVSnapshot: ...
+    def update_from_commits(self, repo_path: str) -> None: ...
+    def include_fp(self, fp_total: float) -> None: ...
+
+
+# 옵션 3 — Process Log
 @dataclass
 class StageBreakdown:
     requirement_pct: float
@@ -61,121 +263,39 @@ class ProcessLog(Protocol):
     """Stop hook 진입점. transcript 분류 + ISO 25010 매핑."""
     def capture(self, transcript: str) -> None: ...
     def report(self) -> StageBreakdown: ...
-    def iso25010_dimensions(self) -> dict[str, int]:
-        """기능성·신뢰성·사용성·효율성·유지보수성·이식성·호환성·보안성·안전성 9축."""
-        ...
+    def iso25010_dimensions(self) -> dict[str, int]: ...
 ```
 
-## 3. Track 2 — UseCase Logger
-
-```python
-@dataclass
-class UseCase:
-    id: str  # UC-NNN
-    actor: str
-    scenario: str
-    mermaid: str | None
-    include_uc_ids: list[str]
-    extend_uc_id: str | None
-
-
-class UseCaseLogger(Protocol):
-    """choreography — 사용자 직접 호출 + Stage Gate가 참조."""
-    def add(self, markdown: str) -> UseCase: ...
-    def list(self) -> list[UseCase]: ...
-    def to_mermaid(self, uc: UseCase) -> str: ...
-    def exists(self) -> bool:
-        """Stage Gate가 'Design 진입 가능 여부' 판정 시 호출."""
-        ...
-```
-
-## 4. Track 3 — SOLID Judge
-
-```python
-@dataclass
-class SolidScore:
-    srp: int  # 0-10
-    ocp: int
-    lsp: int
-    isp: int
-    dip: int
-    cohesion: int  # 응집도 7단계 점수화 (가장 강한 응집 → 약한 응집)
-    coupling: int  # 결합도 6단계 점수화
-    reasoning: str  # LLM judge의 자연어 근거
-
-    @property
-    def total(self) -> float:
-        return (self.srp + self.ocp + self.lsp + self.isp + self.dip) / 5
-
-
-class SolidJudge(Protocol):
-    """choreography — DiffSubmitted 이벤트 구독."""
-    def judge(self, diff: str, context: dict | None = None) -> SolidScore: ...
-    def needs_retry(self, score: SolidScore, threshold: int = 7) -> bool: ...
-    def request_revision(self, score: SolidScore) -> str:
-        """AI agent에게 다시 보낼 수정 프롬프트 생성."""
-        ...
-```
-
-## 5. Track 4 — FP Counter → EV Tracker
-
-```python
-@dataclass
-class FPItem:
-    kind: FPKind
-    complexity: Complexity
-    weight: float  # IFPUG 표준 가중치 표 참조 (docs/METRICS.md Section 1.2)
-
-
-class FPCounter(Protocol):
-    def add(self, kind: FPKind, complexity: Complexity) -> FPItem: ...
-    def total(self) -> float: ...
-    def by_kind(self) -> dict[FPKind, float]: ...
-
-
-@dataclass
-class EVSnapshot:
-    pv: float  # planned value (%)
-    ev: float  # earned value (%)
-    ac: float  # actual cost (hours)
-    spi: float  # EV / PV
-    cpi: float  # EV / AC (정규화 후)
-    fp_total: float | None  # FP Counter 연동 시
-
-
-class EVTracker(Protocol):
-    """choreography — StageCompleted 이벤트 구독 + FP Counter polling."""
-    def measure(self) -> EVSnapshot: ...
-    def update_from_commits(self, repo_path: str) -> None: ...
-    def include_fp(self, fp_total: float) -> None: ...
-```
-
-## 6. 이벤트 타입 명세
+## 7. 이벤트 타입 명세
 
 | 이벤트 | 발행 모듈 | 구독 모듈 | payload |
 |---|---|---|---|
-| `RequirementCreated` | UseCase Logger / req add CLI | Stage Gate | `{req_id, kind, ...}` |
-| `EditAttempted` | Stage Gate (PreToolUse hook) | Process Log | `{tool_name, file, blocked}` |
-| `DiffSubmitted` | (외부) Claude Code | SOLID Judge | `{diff, file_paths}` |
-| `StageCompleted` | Stage Gate | EV Tracker, Process Log | `{stage_name, completed_at}` |
-| `ForceOverride` | Stage Gate.force() | EV Tracker, Process Log | `{stage, reason, forced_at}` |
+| `RequirementCreated` | Traceability / req add CLI | Stage | `{req_id, kind, ...}` |
+| `EditAttempted` | Stage (PreToolUse hook) | Process Log (옵션) | `{tool_name, file}` |
+| `DiffSubmitted` | (외부) Claude Code | Metric Analyzer | `{diff, file_paths}` |
+| `MetricFound` | Metric Analyzer | Progress Dashboard | `{finding_id, metric, value}` |
+| `CardGenerated` | LearningCardGenerator | Progress Dashboard | `{card_id, principle}` |
+| `CardJudged` | LearningCardGenerator | Progress Dashboard | `{card_id, accepted, feedback}` |
+| `CommitMade` | (외부) git | Traceability | `{commit_hash, message, files}` |
+| `StageCompleted` | Stage | EV Tracker (옵션), Process Log (옵션) | `{stage_name, completed_at}` |
 
-## 7. 모듈 간 의존성 검증
+## 8. 모듈 간 의존성 검증
 
-병렬 개발 후 Day 6 저녁 1차 통합 시 검증할 의존성:
+1차 통합 시 검증할 의존성.
 
 ```
-Stage Gate    →  UseCase Logger.exists()   (Design 진입 invariant)
-Stage Gate    →  events 발행
-SOLID Judge   →  events 구독 (DiffSubmitted)
-EV Tracker    →  events 구독 (StageCompleted)
-EV Tracker    →  FP Counter.total()
-Process Log   →  events 구독 (모든)
+Stage           →  MetricAnalyzer.analyze()         (Edit hook 시점)
+MetricAnalyzer  →  LearningCardGenerator.generate()  (finding 발생 시)
+LearningCard    →  Hook (UserPromptSubmit)     (채택된 재요청 prompt 전송)
+Traceability    →  events 구독 (CommitMade)
+Progress Dash   →  events 구독 (CardJudged, CardGenerated, MetricFound)
+EV Tracker     →  events 구독 (StageCompleted) + FP Counter.total()
+Process Log    →  events 구독 (모든)
 ```
 
-각 트랙은 위 6 인터페이스만 stub으로 구현해두면 통합 가능. 실제 동작은 본 모듈 완성 후.
+각 트랙은 위 인터페이스만 stub으로 구현해두면 통합 가능. 실제 동작은 모듈 완성 후.
 
-## 8. 설계 메모
+## 9. 설계 메모
 
 `Protocol`을 채택한 이유는 결합도 최소화 원칙 적용 + 병렬 개발 시 인터페이스 합의 문서를 코드 형태로 남겨두기 위함. 4 트랙이 동시 진행되어도 Protocol contract만 지키면 통합 단계에서 깨질 가능성이 작은 구조.
 
@@ -189,4 +309,4 @@ Process Log   →  events 구독 (모든)
 
 자동 생성된 테스트 코드는 그대로 채택하지 않고 사람이 한 번 검수 후 채택. 테스트 케이스 자체의 타당성도 V&V 영역.
 
-ARCHITECTURE.md의 SQLite 스키마와 본 인터페이스는 명시적 매핑 관계 (예: `Event` dataclass ↔ `events` 테이블). 이 매핑이 깨지면 1차 통합 PoC 시점에 발견되는 구조.
+ARCHITECTURE.md의 SQLite 스키마와 본 인터페이스는 명시적 매핑 관계 (예: `LearningCard` ↔ `learning_cards` 테이블, `Event` ↔ `events` 테이블). 이 매핑이 깨지면 1차 통합 PoC 시점에 발견되는 구조.

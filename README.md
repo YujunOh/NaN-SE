@@ -107,6 +107,24 @@ softgate는 하나의 벤더(Claude, GPT, Gemini, 자체 LLM)에 종속되지 �
 
 확장 가능성 (현재 범위 밖): [docs/FUTURE_WORK.md](./docs/FUTURE_WORK.md)
 
+## 문서 인덱스
+
+| 문서 | 내용 |
+|---|---|
+| [VISION](./docs/VISION.md) | 비전·배경·TCP 비유·로드맵 |
+| [ARCHITECTURE](./docs/ARCHITECTURE.md) | 4 핵심 모듈 + 옵션, SQLite 스키마, CLI 명령 체계 |
+| [LEARNING_CARDS](./docs/LEARNING_CARDS.md) | 학습 카드 시스템 — 데이터 모델, 생성 파이프라인, 본인 구현 vs LLM 영역 |
+| [INTERFACES](./docs/INTERFACES.md) | Protocol 기반 모듈 contract |
+| [REQUIREMENTS](./docs/REQUIREMENTS.md) | 페르소나, 5W1H 페인포인트, 유스케이스, V&V 정책 |
+| [WBS](./docs/WBS.md) | 12일 일정 + 트랙 구조 |
+| [METRICS](./docs/METRICS.md) | FP / EV / ISO 25010 정의·공식 (옵션 모듈) |
+| [COMPETITIVE](./docs/COMPETITIVE.md) | 기존 도구 비교 (CodeRabbit, traceability-check 등) |
+| [FUTURE_WORK](./docs/FUTURE_WORK.md) | 확장 가능성 (Pub/Sub, TEE, multi-vendor) |
+| [DISCUSSION_LOG](./docs/DISCUSSION_LOG.md) | 일별 자연어 토의·의사결정 일지 |
+| [AI_TOOLING](./docs/AI_TOOLING.md) | AI 도구 선정 근거 |
+| [AI_USAGE](./docs/AI_USAGE.md) | AI 사용 일지 |
+| [EV_LOG](./docs/EV_LOG.md) | 일별 EV 측정 |
+
 ## 작성자
 
 오유준 (홍익대학교 컴퓨터공학과)

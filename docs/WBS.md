@@ -37,35 +37,38 @@ Day:  1    2    3    4    5    6    7    8    9    10   11   12
 
 ## Track별 상세
 
-### Track 1 — Stage Gate + Process Log (직렬, hook 공유, Day 4-7)
+> Day 3 피벗 결과 트랙 재조정. 4 핵심 모듈 기준.
 
-이유: 둘 다 Claude Code hook 기반. trace state 공유 필수 → 결합도 높아 동일 트랙.
+### Track 1 — Stage + SOLID Judge + Learning Card (핵심 핫 패스, Day 4-7)
 
-- Day 4-5: Stage Gate — `PreToolUse` hook 등록, 단계 state machine, 요구사항 부재 시 block
-- Day 5-6: Stage Gate — SAGA rollback 로직, idempotency 보장
-- Day 6-7: Process Log — `Stop` hook 등록, transcript 분류기 (요구/설계/구현/테스트/유지보수)
-- Day 7: Process Log — ISO 25010 메트릭 매핑, 시각화 (CLI 테이블)
+이유: PreToolUse hook 진입 → Stage 상태 확인 → SOLID Judge 채점 → Learning Card 생성이 한 흐름. 분리 시 통합 비용 큼 → 동일 트랙.
 
-### Track 2 — UseCase Logger (독립, Day 4-7)
+- Day 4: Stage state machine + `PreToolUse` hook 등록. 누락 검출 로직(차단 X, 제안 O)
+- Day 5: SOLID Judge — diff 파싱 + LLM judge prompt + 5원칙·응집도·결합도 채점
+- Day 6: Learning Card Generator — 카드 데이터 모델, 생성 파이프라인, prompt 템플릿, DB 저장
+- Day 7: 카드 검수 CLI(rich) + 채택 시 재요청 prompt를 hook으로 AI에 자동 전송
 
-- Day 4: Markdown 파서 (actor, scenario, include 관계)
-- Day 5: Mermaid 다이어그램 자동 생성
-- Day 6: SQLite 스키마, CRUD API
-- Day 7: Stage Gate가 참조하는 인터페이스
+### Track 2 — Traceability (한국어/과제 양식, Day 4-7)
 
-### Track 3 — SOLID Judge (독립, Day 4-7)
+- Day 4: Markdown 파서 (REQ, UC, acceptance criteria). 한국어 양식 우선
+- Day 5: Mermaid 다이어그램 자동 생성 + 한국어 commit message 태그 파서
+- Day 6: SQLite traceability 테이블 + CRUD + gap 검출
+- Day 7: 한국 대학 과제 양식 export (일별 진척 보고서, 형상관리 증빙)
 
-- Day 4: Diff 파싱 (git diff format)
-- Day 5: SOLID 5원칙 규칙 엔진 (LLM judge subagent prompt)
-- Day 6: 응집도/결합도 채점, 점수 통합
-- Day 7: 자동 재요청 루프
+### Track 3 — Progress Dashboard (Day 4-7)
 
-### Track 4 — FP Counter → EV Tracker (조건부 순차, Day 4-7)
+- Day 4: SQLite dashboard_metrics 테이블 + 이벤트 구독 골격
+- Day 5: 학습 카드 통계 (총 풀이 수, 채택률, 거절 사유 분포)
+- Day 6: SOLID 통과율 트렌드(7일·30일) + streak 계산
+- Day 7: CLI rendering(rich) + HTML 출력(선택)
 
-- Day 4: FP Counter — EI/EO/EQ/ILF/EIF 입력 UI (CLI), 복잡도 가중치 테이블
-- Day 5: FP Counter — FP 계산 → EV Tracker 인터페이스 정의
-- Day 5-6: EV Tracker — WBS 파서, commit/test 진척 측정
-- Day 6-7: EV Tracker — FP 가중치 통합, SPI/CPI 산출
+### Track 4 — 옵션 모듈 (EV / FP / Process Log, Day 4-7)
+
+학교 과제 키워드 충족용. 핵심 4 모듈 완성 후 시간 남으면 진행. scope 폭발 시 일부 생략 가능.
+
+- Day 4-5: FP Counter — IFPUG 가중치 표 코드화, CLI 입력
+- Day 5-6: EV Tracker — WBS 파서, commit 진척 측정, SPI/CPI 산출
+- Day 6-7: Process Log — Stop hook + transcript 분류 + ISO 25010 매핑
 
 ## Risk 항목
 
