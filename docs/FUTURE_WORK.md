@@ -9,19 +9,19 @@
 예상 이벤트:
 - `RequirementCreated` → Stage, UseCase Logger 구독
 - `EditAttempted` → Stage (차단 결정), Process Log (기록) 구독
-- `DiffSubmitted` → SOLID Judge 구독
+- `MetricFound` → Learning Card Generator (설명 카드 생성) 구독
 - `StageCompleted` → EV Tracker (가중치 갱신), FP Counter (관련 component 계산) 구독
 
 이 구조의 이론적 배경은 분산 시스템 영역에서 오래 다뤄진 service choreography 패턴. 모듈 간 결합도를 자료 결합 수준까지 낮추는 효과. 본 과제 prototype에서는 SQLite `events` 테이블 polling으로 흉내내는 수준이지만, 진짜 pub/sub 미들웨어(Redis Streams, NATS, Kafka 등)로 교체하면 확장성과 다중 노드 운용까지 가능한 구조로 갈 수 있음.
 
 ## 2. TEE 기반 로컬 실행
 
-민감한 코드 (금융·의료·기업 사내 코드) 대상에는 LLM judge subagent를 TEE 안에서 실행. 코드가 외부 LLM 서버로 유출되지 않도록 차단.
+민감한 코드 (금융·의료·기업 사내 코드) 대상에는 학습 카드 생성용 LLM 설명층을 TEE 안에서 실행. 코드가 외부 LLM 서버로 유출되지 않도록 차단.
 
-현재 prototype는 Anthropic API에 diff를 그대로 전송하는 구조. 개인 학습용 repo 수준에서는 OK이지만 기업 도입 시 차단 요인이 되는 부분. 해결 방향:
+현재 prototype는 학습 카드 생성 시 Anthropic API에 대상 코드를 그대로 전송하는 구조. 검출은 로컬에서 결정론적으로 끝나므로 코드가 나가지 않지만, 설명 단계에서는 나간다. 개인 학습용 repo 수준에서는 OK이지만 기업 도입 시 차단 요인이 되는 부분. 해결 방향:
 
 - 로컬 LLM (Llama, Qwen 등) + TEE 환경 (Intel SGX, AMD SEV, ARM TrustZone)
-- diff hash만 외부 API로 보내고 실제 텍스트는 TEE 내부에서만 처리
+- 코드 hash만 외부 API로 보내고 실제 텍스트는 TEE 내부에서만 처리
 - audit log를 attestation 가능한 형태로 기록
 
 이 영역은 학습 곡선이 큰 부분. 12일 범위 밖.
@@ -60,7 +60,7 @@ Brooks 법칙: scope 확장 시 통합 비용이 polynomial로 늘어남. 본 �
 - TEE 기반 로컬 실행: +20-30일 (학습 곡선 + 환경 셋업)
 - Multi-vendor: +14-21일 (각 벤더 hook 인터페이스 학습)
 
-본 prototype의 가치는 위 확장의 기초 골격 제공. 추후 확장 시 같은 SQLite 스키마·hook 인터페이스·LLM judge prompt를 재사용 가능한 구조.
+본 prototype의 가치는 위 확장의 기초 골격 제공. 추후 확장 시 같은 SQLite 스키마·hook 인터페이스·학습 카드 prompt를 재사용 가능한 구조.
 
 ## 메모
 

@@ -10,7 +10,7 @@ softgate는 AI coding agent를 **대체하지 않는** 도구. agent가 만든 �
 |---|---|---|---|
 | Claude Code, GPT, Cursor, Gemini, 자체 LLM | AI coding agent (실행) | softgate가 hook으로 위에 얹히는 구조 | 실행 vs 검증 |
 | **opencode planner** | "무엇을 어떻게 할지" 계획 agent (read-only) | softgate는 그 계획이 요구사항·SOLID·테스트 기준에 맞는지 검증 | "할지" vs "타당한지" |
-| SonarQube, ESLint | 정적 분석 (코드 작성 후) | softgate는 `PreToolUse` hook으로 작성 전 단계 진입 조건도 검증 | 후처리 vs 양방향 |
+| SonarQube, ESLint, radon | 정적 분석 (메트릭 검출) | softgate의 Metric Analyzer 검출 자체는 이들과 겹침. 차별점은 검출 뒤 LLM 설명 카드 생성·검수·AI 재요청 prompt까지 잇는 폐루프 | 검출만 vs 검출→학습→교정 |
 | Harness.io | CI/CD 배포 자동화 | 다른 단계 (softgate는 PR 이전) | 배포 vs 개발 |
 | LangSmith, Helicone | LLM observability (비용·레이턴시) | 측정 대상 다름. softgate는 SW공학 절차 준수 | 운영 지표 vs 공학 절차 |
 | Devin, Manus | end-to-end autonomous agent | 같이 사용 가능. autonomous agent의 산출물을 softgate가 검수 | 자율 실행 vs 검수 |
@@ -33,11 +33,13 @@ softgate Stage는 다른 역할.
    ↓
 [opencode planner] - 어떻게 구현할지 계획
    ↓
-[softgate Stage 2: Design] - 계획이 SOLID·아키텍처 규칙 위반 없는지 확인
+[softgate Stage 2: Design] - 계획이 아키텍처 규칙 위반 없는지 확인
    ↓
 [opencode build agent] - 실제 구현
    ↓
-[softgate SOLID Judge] - diff 채점
+[softgate Metric Analyzer] - 결정론적 메트릭(LCOM4·순환복잡도)으로 위반 검출
+   ↓
+[softgate Learning Card] - 확정 위반을 LLM이 설명, 사용자가 검수
    ↓
 [softgate Process Log] - 단계별 비율 기록
 ```
