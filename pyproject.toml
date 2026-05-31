@@ -21,6 +21,7 @@ softgate = "softgate.cli:app"
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
+ui = ["streamlit>=1.30"]
 
 [tool.setuptools.packages.find]
 include = ["softgate*"]
