@@ -11,6 +11,7 @@ from rich.panel import Panel
 from rich.table import Table
 
 from softgate.db import Store
+from softgate.learning_card.generator import generate_card
 from softgate.learning_card.models import LearningCard
 from softgate.metrics import analyze_source
 from softgate.metrics.complexity import findings_from_complexity
@@ -65,6 +66,37 @@ def analyze(path: Path) -> None:
             str(f.severity),
         )
     console.print(ftable)
+
+
+@app.command()
+def learn(path: Path, db: Path | None = None) -> None:
+    """검출된 위반 finding을 LLM 설명층에 넘겨 학습 카드를 생성·저장한다.
+
+    검출은 결정적, 설명만 LLM. ANTHROPIC_API_KEY 필요.
+    """
+    source = path.read_text(encoding="utf-8")
+    findings = _collect_findings(source)
+    if not findings:
+        console.print("[green]위반 finding 없음. 생성할 카드 없음.[/green]")
+        return
+
+    with Store(db) as store:
+        session_id = datetime.now().strftime("%Y%m%d-%H%M%S")
+        created: list[str] = []
+        for finding in findings:
+            finding_id = store.save_finding(finding, session_id)
+            card_id = store.next_card_id()
+            console.print(f"{card_id} 생성 중... ({finding.class_name} / {finding.metric})")
+            card = generate_card(
+                finding,
+                source,
+                card_id=card_id,
+                session_id=session_id,
+                finding_id=finding_id,
+            )
+            store.save_card(card)
+            created.append(card_id)
+    console.print(f"[green]{len(created)}장 저장됨: {', '.join(created)}.[/green] 'softgate review <ID>'로 검수.")
 
 
 @app.command()

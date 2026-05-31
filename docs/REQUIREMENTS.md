@@ -1,6 +1,10 @@
-# Requirements — softgate 초안 (Day 1)
+# Requirements — softgate
 
-> Day 2에 페르소나·유스케이스 다이어그램·worst-case 시나리오 확장 예정.
+> Day 1 초안에서 출발. Day 5에 설계 피벗을 반영해 유스케이스와 worst-case를 다시 정리했다.
+>
+> **피벗 요약**: 검출은 결정론적 정적 메트릭(LCOM4, 순환복잡도)으로만 하고 LLM은 점수를 매기지 않는다. LLM은 확정된 위반을 학습 카드로 설명만 한다. 채점을 LLM에 맡기면 신뢰할 수 없다는 판단("Are We SOLID Yet?" 결과)에서 나온 결정이다. 자세한 경위는 DISCUSSION_LOG.md Day 5 참조.
+>
+> **구현 범위**: Metric Analyzer(검출)와 Learning Card(설명·검수)를 실제 구현한다. Stage Gate와 Traceability는 얇은 데모로만 둔다. EV/FP/Process Log는 보고서에서 설계만 언급한다.
 
 ## 1. 페르소나 (Day 2 확장)
 
@@ -25,53 +29,55 @@
 
 | Who | What | When | Where | Why | How (softgate 대응) |
 |---|---|---|---|---|---|
-| 바이브코더 | 요구사항 없이 곧장 구현 진입 | AI 도구 사용 시 | Claude Code/Cursor 세션 | 빠른 결과 욕구 + 도구가 강제 안 함 | Stage Gate — 요구사항 부재 시 Edit 차단 |
-| 주니어 | AI 출력의 SOLID 위반 미인지 | 코드 리뷰 직전 | 로컬 IDE | 5원칙 수동 검증 부담 | SOLID Judge — LLM judge로 자동 채점 |
-| 학습자 | WBS·EV를 별도 관리 | 과제 진행 중 | Notion / 종이 | 도구 분산 | EV Tracker — commit 진척으로 자동 계산 |
-| 모두 | 단계별 진행 비율 불투명 | 프로젝트 후반 | 어디서나 | transcript 분석 도구 부재 | Process Log — 자동 분류 + 시각화 |
-| 학습자 | 유스케이스 다이어그램 작성 부담 | 요구분석 단계 | draw.io 등 | UML 도구 별도 학습 | UseCase Logger — 마크다운 → Mermaid 자동 |
-| 학습자 | FP 산정 수동 | SW공학 과제 | 엑셀 | 가중치 외움 부담 | FP Counter — 입력만 받고 자동 계산 |
+| 바이브코더 | 요구사항 없이 곧장 구현 진입 | AI 도구 사용 시 | Claude Code/Cursor 세션 | 빠른 결과 욕구 + 도구가 강제 안 함 | Stage Gate(얇은 데모): 요구사항 부재 시 Edit 차단 |
+| 주니어 | AI 출력의 SRP·응집도 위반 미인지 | 코드 리뷰 직전 | 로컬 IDE | 5원칙 수동 검증 부담 | Metric Analyzer(구현): LCOM4·순환복잡도로 결정론적 검출 |
+| 주니어 | 위반은 알아도 왜·어떻게 고칠지 막막 | 검출 직후 | 로컬 IDE | 원칙을 코드에 적용하는 법 미숙 | Learning Card(구현): 확정 위반을 LLM이 설명, 사용자가 검수 |
+| 학습자 | WBS·EV를 별도 관리 | 과제 진행 중 | Notion / 종이 | 도구 분산 | EV Tracker(보고서 설계만): commit 진척으로 자동 계산 |
+| 모두 | 단계별 진행 비율 불투명 | 프로젝트 후반 | 어디서나 | transcript 분석 도구 부재 | Process Log(보고서 설계만): 자동 분류 + 시각화 |
+| 학습자 | FP 산정 수동 | SW공학 과제 | 엑셀 | 가중치 외움 부담 | FP Counter(보고서 설계만): 입력만 받고 자동 계산 |
 
 ## 3. 유스케이스
 
 ### 3.1 목록
 
-| ID | 액터 | 시나리오 | 관련 모듈 |
-|---|---|---|---|
-| UC-01 | 사용자 | 요구사항 명시 후 코드 변경 → Stage Gate 통과 | Stage Gate, UseCase Logger |
-| UC-02 | 사용자 | 요구사항 없이 Edit 호출 → 차단 + 가이드 메시지 | Stage Gate |
-| UC-03 | AI Agent | SOLID 위반 코드 제안 → SOLID Judge가 자동 재요청 | SOLID Judge |
-| UC-04 | 사용자 | 마크다운 유스케이스 입력 → Mermaid 다이어그램 자동 생성 | UseCase Logger |
-| UC-05 | 사용자 | WBS + FP 입력 → EV 자동 추적 시작 | EV Tracker, FP Counter |
-| UC-06 | 시스템 (Stop hook) | 세션 종료 → Process Log가 단계별 비율 리포트 | Process Log |
+실제 구현한 UC-03/04/05가 softgate의 핵심 흐름이다. UC-01/02는 얇은 데모, UC-06은 보고서 설계만 한다.
+
+| ID | 액터 | 시나리오 | 관련 모듈 | 범위 |
+|---|---|---|---|---|
+| UC-01 | 사용자 | 요구사항 명시 후 코드 변경, Stage Gate 통과 | Stage Gate | 얇은 데모 |
+| UC-02 | 사용자 | 요구사항 없이 Edit 호출, 차단 + 가이드 메시지 | Stage Gate | 얇은 데모 |
+| UC-03 | 사용자 | AI 출력 코드를 분석, Metric Analyzer가 SRP·응집도 위반을 결정론적으로 검출 | Metric Analyzer | 구현 |
+| UC-04 | 사용자 | 확정된 위반 finding을 Learning Card로 생성, LLM이 이유·비용·교정 예시를 설명 | Learning Card | 구현 |
+| UC-05 | 사용자 | 학습 카드를 검수해 채택/거절, 채택 시 AI에 보낼 재요청 prompt 확보 | Learning Card | 구현 |
+| UC-06 | 시스템 (Stop hook) | 세션 종료, Process Log가 단계별 비율 리포트 | Process Log | 보고서 설계만 |
 
 ### 3.2 유스케이스 다이어그램
 
-Mermaid는 정식 `usecaseDiagram` 문법 미지원이라 `flowchart` 로 그림. PlantUML 정식 표기에 가깝게 흉내냄 — 다이어그램 처음 그려보는 거라 어색할 수 있고, Day 3 ARCHITECTURE.md 작업하다가 다시 손볼 가능성 있음.
+Mermaid는 정식 `usecaseDiagram` 문법을 지원하지 않아 `flowchart`로 그렸다. PlantUML 표기에 가깝게 흉내냈다. 검출에서 학습 카드까지의 핵심 흐름(UC-03, 04, 05)을 굵게 둔다.
 
 ```mermaid
 flowchart LR
     User((사용자))
-    AI((AI Agent))
+    LLM((LLM<br/>설명층))
     System((softgate<br/>시스템))
 
     subgraph softgate
         UC01([UC-01<br/>요구사항 명시 후 코드 변경])
         UC02([UC-02<br/>요구사항 없이 Edit 호출])
-        UC03([UC-03<br/>SOLID 위반 코드 제안])
-        UC04([UC-04<br/>마크다운 유스케이스 입력])
-        UC05([UC-05<br/>WBS + FP 입력])
+        UC03([UC-03<br/>위반 결정론적 검출])
+        UC04([UC-04<br/>학습 카드 생성])
+        UC05([UC-05<br/>학습 카드 검수])
         UC06([UC-06<br/>세션 종료 리포트])
     end
 
     User --- UC01
     User --- UC02
-    User --- UC04
+    User --- UC03
     User --- UC05
-    AI --- UC03
+    LLM --- UC04
     System --- UC06
 
-    UC01 -. include .-> UC04
+    UC04 -. include .-> UC03
     UC05 -. include .-> UC04
     UC02 -. extend .-> UC01
 ```
@@ -80,18 +86,18 @@ flowchart LR
 
 〈〈include〉〉는 "필수 포함" 관계로 정의된다. 이에 따라:
 
-- **UC-01 〈〈include〉〉 UC-04**: 요구사항 명시(UC-01)는 유스케이스 입력(UC-04)을 항상 포함
-- **UC-05 〈〈include〉〉 UC-04**: WBS 입력 시 유스케이스를 WBS task에 매핑해야 하므로 UC-04를 항상 호출
+- **UC-04 〈〈include〉〉 UC-03**: 학습 카드 생성(UC-04)은 결정론적 검출(UC-03)이 만든 확정 finding을 항상 입력으로 받는다. 검출 없이는 설명할 대상이 없다
+- **UC-05 〈〈include〉〉 UC-04**: 검수(UC-05)는 생성된 카드(UC-04)를 항상 전제로 한다
 - **UC-02 〈〈extend〉〉 UC-01**: 요구사항 없이 Edit 호출은 UC-01의 비정상 분기. extend는 "조건부 확장" 관계라 차단 시나리오에 적합
 
-### 3.4 다이어그램 작업하며 발견한 점
+### 3.4 액터 경계에서 정리한 점
 
-UC-03의 액터를 "AI Agent"로 잡았는데 사실 모호한 부분이 있는 상황. AI가 코드 제안하는 시점에 액터인지 softgate 내부 모듈인지 경계가 흐림. application boundary 정의가 이 부분에 해당. ARCHITECTURE.md에서 softgate의 application boundary를 명확히 그려둠 (특히 SOLID Judge의 LLM judge subagent가 외부 액터인지 내부 컴포넌트인지).
+피벗 전에는 UC-03의 액터를 "AI Agent"로 잡고 SOLID Judge가 LLM으로 채점하는 구조였다. 이때 LLM이 외부 액터인지 내부 컴포넌트인지 경계가 흐렸다. 피벗 후 검출은 결정론적 정적 분석이라 LLM이 빠졌고, 검출 트리거 액터는 사용자로 분명해졌다. LLM은 UC-04의 설명 생성에만 관여하는 외부 의존성으로 경계가 정리됐다. application boundary는 ARCHITECTURE.md에 그려둔다.
 
 ## 4. 비기능 요구사항
 
 - **응답성**: Stage Gate hook은 ≤ 500ms (사용자 입력 방해 X)
-- **신뢰성**: SOLID Judge 점수 회귀 테스트 통과 (동일 입력 시 ±1점)
+- **신뢰성**: Metric Analyzer는 결정론적이라 동일 입력에 동일 출력. 회귀 테스트로 LCOM4·순환복잡도 값이 정확히 재현되는지 검증
 - **이식성**: Windows/macOS/Linux 모두 동작 (Claude Code 환경)
 - **유지보수성**: 6 모듈 결합도 ≤ "자료(data) 결합" (응집도/결합도 6단계 기준)
 - **시험가능성**: 단위/통합/시스템 테스트 자동 도출 가능
@@ -123,26 +129,25 @@ sequenceDiagram
 
 **대응**: Day 3에 `Edit`/`Write`/`MultiEdit`/`NotebookEdit` + `Bash`의 파일 수정 명령(`sed -i`, `>` 리다이렉트 등) 패턴까지 hook 등록. 단 모든 패턴 잡기 불가능 → 보고서에 "한계" 명시.
 
-### WC-02: SOLID Judge가 LLM 환각으로 잘못된 위반 보고
+### WC-02: LLM 설명층이 잘못된 교정 예시를 생성
+
+피벗으로 검출은 결정론적이 됐다. 같은 코드는 항상 같은 LCOM4·순환복잡도를 내므로 검출 단계에는 환각이 없다. 위험은 설명층으로 옮겨갔다. 학습 카드의 after_code나 revision_prompt를 LLM이 만드는데, 이게 틀린 리팩토링을 제시할 수 있다.
 
 ```mermaid
 sequenceDiagram
     participant U as User
-    participant AI as AI Agent
-    participant SJ as SOLID Judge
-    participant LLM as Haiku Judge Subagent
+    participant MA as Metric Analyzer
+    participant LC as Learning Card Generator
+    participant LLM as Haiku 설명층
 
-    AI->>SJ: diff 채점 요청
-    SJ->>LLM: SOLID 5원칙 평가 prompt
-    LLM-->>SJ: "SRP 위반 점수 9/10" (환각)
-    SJ-->>AI: 재요청
-    AI->>SJ: 수정된 diff
-    SJ->>LLM: 재평가
-    LLM-->>SJ: "여전히 SRP 위반 8/10" (또 환각)
-    Note over U,LLM: 무한 재요청 루프 ⚠️
+    MA->>LC: 확정 finding (LCOM4=3, SRP)
+    LC->>LLM: "왜 위반이고 어떻게 고치는지 설명" prompt
+    LLM-->>LC: after_code (잘못된 분리 예시)
+    LC-->>U: 학습 카드 제시
+    Note over U,LLM: 검수 단계에서 사용자가 거절, 사유 기록 ⚠️
 ```
 
-**대응**: 최대 재요청 3회 → 초과 시 사용자에게 ruling 요청. "검수는 사람" 정책 (Section 7) 직접 실행.
+**대응**: 점수는 결정론적 메트릭이 매기므로 환각으로 잘못 검출되는 일은 없다. 설명의 품질은 사용자 검수(UC-05)로 거른다. 거절 시 사유를 기록해 다음 카드 prompt 개선에 반영한다. "검수는 사람" 정책(Section 6)의 직접 실행 지점이다.
 
 ### WC-03: Hook 처리 시간 초과
 
@@ -205,7 +210,7 @@ sequenceDiagram
 
 이 원칙을 softgate 모든 모듈의 핵심 설계 기준으로 채택. 도구는 hint를 생성하지만 ruling은 사용자가 한다.
 
-- **SOLID Judge**: LLM이 점수를 매기지만 사용자가 override 가능. Judge 결과는 보고용이지 강제용이 아님
+- **Metric Analyzer / Learning Card**: 검출은 결정론적이지만 위반을 고칠지는 사용자가 정한다. 학습 카드의 교정 예시도 사용자가 채택/거절한다. 카드는 보고용이지 강제용이 아님
 - **Stage**: 차단도 `--force` 우회 가능. 단 우회 시 EV Tracker에 "강제 진행" 마킹되어 회고에 반영
 - **Process Log**: 분류 결과는 통계용. 사용자가 분류 오류 발견 시 수동 재분류 가능
 - **FP Counter / EV Tracker**: 자동 계산이지만 가중치·일정은 사용자가 직접 입력
