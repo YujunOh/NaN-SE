@@ -8,6 +8,16 @@ version = "0.1.0"
 description = "바이브코딩에 SW공학 프로세스를 끼워넣는 부드러운 게이트"
 requires-python = ">=3.11"
 readme = "README.md"
+dependencies = [
+    "pydantic>=2",
+    "anthropic>=0.40",
+    "typer>=0.12",
+    "rich>=13",
+    "radon>=6",
+]
+
+[project.scripts]
+softgate = "softgate.cli:app"
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
