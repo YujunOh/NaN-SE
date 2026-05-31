@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "softgate"
+version = "0.1.0"
+description = "바이브코딩에 SW공학 프로세스를 끼워넣는 부드러운 게이트"
+requires-python = ">=3.11"
+readme = "README.md"
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[tool.setuptools.packages.find]
+include = ["softgate*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
