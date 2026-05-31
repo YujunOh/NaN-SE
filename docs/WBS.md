@@ -7,11 +7,10 @@
 
 ```
 Day:  1    2    3    4    5    6    7    8    9    10   11   12
-      [착수][요구][설계][T1·T2·T3·T4 병렬 개발──────][통합][테스트][보고서]
-                       └Track 1: Stage Gate → Process Log──┘
-                       └Track 2: UseCase Logger────────┘
-                       └Track 3: SOLID Judge───────┘
-                       └Track 4: FP Counter → EV Tracker──┘
+      [착수][요구][설계][개발──────────────────][통합][테스트][보고서]
+                       └Track 1(구현): Metric Analyzer → Learning Card → 검수 CLI┘
+                       └얇은 데모: Stage Gate┘
+                       └보고서 설계만: UseCase Logger / Process Log / FP / EV┘
 ```
 
 ## Day-by-Day Breakdown
@@ -22,8 +21,8 @@ Day:  1    2    3    4    5    6    7    8    9    10   11   12
 | 2 | 05-28 | 요구분석 | 페르소나, 유스케이스 다이어그램 4-6개 (Mermaid), 5W1H, worst-case | 4 | 12% |
 | 3 | 05-29 | 아키텍처 설계 | SAGA 단계 정의, 모듈 인터페이스, SQLite 스키마, hook 동작 검증 | 5 | 20% |
 | 4 | 05-30 | T1+T2+T3+T4 병렬 시작 | 4 모듈 골격 + 인터페이스 stub | 8 | 35% |
-| 5 | 05-31 | T1 Stage Gate 핵심 / T2 Mermaid 생성 / T3 SOLID 규칙 / T4 FP 계산 | 4 모듈 각 50% | 8 | 50% |
-| 6 | 06-01 | T1 Process Log 시작 / T2 DB 통합 / T3 LLM judge 통합 / T4 EV Tracker 시작 | 4 모듈 각 75% | 7 | 65% |
+| 5 | 05-31 | 피벗: 검출/설명 분리. Metric Analyzer(LCOM4+radon) + Learning Card 파이프라인 구현, CLI·SQLite·테스트 25개 | 6 | 50% |
+| 6 | 06-01 | learn CLI + 문서 피벗 정렬(REQUIREMENTS·COMPETITIVE·FUTURE_WORK·WBS·이슈) | 7 | 65% |
 | 7 | 06-02 | T1 Process Log 완료 / T3 재요청 루프 / T4 EV Tracker 핵심 | 모듈 6개 완성 | 6 | 75% |
 | 8 | 06-03 | 통합 1 | 모듈 간 인터페이스 검증, choreography 이벤트 버스 | 5 | 82% |
 | 9 | 06-04 | 통합 2 | End-to-end 테스트, SAGA rollback 검증 | 5 | 88% |
@@ -37,16 +36,18 @@ Day:  1    2    3    4    5    6    7    8    9    10   11   12
 
 ## Track별 상세
 
-> Day 3 피벗 결과 트랙 재조정. 4 핵심 모듈 기준.
+> Day 5 피벗 결과 트랙 재조정. 실제 구현은 Track 1(Metric Analyzer + Learning Card)에 집중한다. 아래 Track 2~4는 초기 계획 기록으로 남기되 구현 범위에서 제외하고 보고서 설계 언급으로 강등했다(경위: DISCUSSION_LOG.md Day 5).
 
-### Track 1 — Stage + SOLID Judge + Learning Card (핵심 핫 패스, Day 4-7)
+### Track 1 — Metric Analyzer + Learning Card (핵심 핫 패스, Day 4-7)
 
-이유: PreToolUse hook 진입 → Stage 상태 확인 → SOLID Judge 채점 → Learning Card 생성이 한 흐름. 분리 시 통합 비용 큼 → 동일 트랙.
+> Day 5 피벗: LLM 채점(SOLID Judge)을 폐기하고 결정론적 검출(Metric Analyzer)과 LLM 설명(Learning Card)으로 분리. 검출은 LLM을 쓰지 않는다.
 
-- Day 4: Stage state machine + `PreToolUse` hook 등록. 누락 검출 로직(차단 X, 제안 O)
-- Day 5: SOLID Judge — diff 파싱 + LLM judge prompt + 5원칙·응집도·결합도 채점
-- Day 6: Learning Card Generator — 카드 데이터 모델, 생성 파이프라인, prompt 템플릿, DB 저장
-- Day 7: 카드 검수 CLI(rich) + 채택 시 재요청 prompt를 hook으로 AI에 자동 전송
+이유: 코드 분석 → Metric Analyzer 결정론적 검출 → 확정 finding → Learning Card 생성 → 검수가 한 흐름. 분리 시 통합 비용 큼.
+
+- Day 4: 메트릭 골격 + finding 데이터 모델
+- Day 5: Metric Analyzer — LCOM4 직접 구현 + radon 순환복잡도 통합 + finding 매핑 (완료)
+- Day 6: Learning Card Generator — 카드 모델, 생성 파이프라인, prompt 템플릿, SQLite 저장, learn CLI (완료)
+- Day 7: 카드 검수 CLI(rich) + 채택 시 재요청 prompt 확보 (완료)
 
 ### Track 2 — Traceability (한국어/과제 양식, Day 4-7)
 
@@ -74,7 +75,7 @@ Day:  1    2    3    4    5    6    7    8    9    10   11   12
 
 1. **통합 단계 지연** - 4 트랙이 Day 7에 모이는데 인터페이스 어긋나면 통합 시간 부족. 완충: Day 3에 인터페이스 명세 확정 + Day 6 저녁에 1차 통합 PoC 시도로 호환성 확인. Day 7 통합 합류가 실제로 가능할지 미지수인 상황 (Brooks 법칙이 1인 + 다중 세션에도 적용된다면 폭발 가능)
 
-2. **LLM judge 비결정성** - SOLID Judge 점수가 매번 다를 가능성. 완충: temperature=0, 동일 prompt 회귀 테스트. 점수 100% 일관 보장은 어려움 → 점수는 hint, 최종 채택은 사용자 판단 (REQUIREMENTS Section 7)
+2. **설명층 LLM 품질** - 피벗으로 검출은 결정론적이 돼 비결정성 risk가 사라졌다(동일 코드 → 동일 메트릭). 남은 risk는 학습 카드의 교정 예시를 LLM이 틀리게 생성하는 것. 완충: 카드는 hint일 뿐 채택/거절은 사용자(REQUIREMENTS Section 6), 거절 사유를 다음 prompt 개선에 반영
 
 3. **Claude Code hook 권한 충돌** - 사용자 환경 `~/.claude/settings.json`이 `defaultMode: acceptEdits`인 경우 `PreToolUse` 차단 hook이 override 가능한지 미확인 상태. 완충: 구현 초기에 hook 동작 PoC 1개로 사전 검증
 

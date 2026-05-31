@@ -159,6 +159,18 @@ pytest 8개 케이스(정상·god class·메서드 호출 연결·staticmethod �
 
 다음은 이 메트릭 결과를 받아 학습 카드를 생성하는 파이프라인.
 
+### 폐루프 완성과 LLM 분리
+
+메트릭 결과를 학습 카드로 잇는 파이프라인을 다 짰다. finding 매핑(`findings.py`), 학습 카드 모델, 채점 금지 prompt, 파서, 생성기까지. 생성기는 LLM 호출을 `complete`라는 주입 가능한 함수로 뺐다. 덕분에 테스트에서 네트워크 없이 가짜 응답을 넣을 수 있고, softgate가 검출하려는 DIP를 스스로 지키는 셈이 됐다.
+
+검출 트리거는 LCOM4뿐 아니라 radon 순환복잡도도 붙였다. 직접 재발명하지 않기로 한 결정을 코드로 실천한 부분. 다만 radon 결과에서 메서드는 letter가 'M'이라 'F'만 필터링하면 빈 결과가 나오는 함정이 있었다.
+
+SQLite Store, Typer+rich CLI(analyze/learn/cards/review/seed-demo)까지 묶어 검출에서 검수까지의 폐루프를 end-to-end로 돌렸다. 가짜 LLM으로 테스트 25개 통과. Windows 콘솔(cp949)에서 em-dash가 깨지는 버그도 잡았다. `learn` 커맨드는 실제 Anthropic 호출까지 배선이 닿았지만 이 환경에 API 키가 없어 실호출은 사용자 몫으로 남겼다.
+
+### 문서를 피벗에 맞춰 정렬
+
+검출/설명 분리 결정이 문서 곳곳의 옛 "SOLID Judge(LLM 채점)" 서술과 충돌했다. REQUIREMENTS의 유스케이스·worst-case, COMPETITIVE 비교표, FUTURE_WORK 이벤트명, WBS 트랙, README 모듈표를 모두 새 구조로 맞췄다. 특히 SonarQube·radon과 검출이 겹친다는 점을 솔직히 인정하고, 차별점을 학습 카드 폐루프로 다시 잡았다. GitHub 이슈도 #6을 Metric Analyzer+Learning Card로 재작성하고, 구현 범위 밖이 된 트랙엔 피벗 날짜 코멘트로 강등 사유를 남겼다. 의사결정 트레일 자체가 과제 증거라 닫지 않고 기록을 남기는 쪽을 택했다.
+
 ---
 
 ## 작성자
