@@ -25,6 +25,8 @@ CREATE TABLE IF NOT EXISTS findings (
     threshold   REAL NOT NULL,
     principle   TEXT NOT NULL,
     severity    INTEGER NOT NULL,
+    source_file TEXT,
+    source_line INTEGER,
     created_at  TEXT NOT NULL
 );
 
@@ -43,10 +45,20 @@ CREATE TABLE IF NOT EXISTS learning_cards (
     revision_prompt TEXT NOT NULL,
     user_accepted   INTEGER,
     user_feedback   TEXT,
+    source_file     TEXT,
+    source_line     INTEGER,
     generated_at    TEXT NOT NULL,
     reviewed_at     TEXT
 );
 """
+
+# 기존 DB에 컬럼이 없을 때 더하는 가벼운 마이그레이션. (table, column, type)
+_MIGRATIONS = [
+    ("findings", "source_file", "TEXT"),
+    ("findings", "source_line", "INTEGER"),
+    ("learning_cards", "source_file", "TEXT"),
+    ("learning_cards", "source_line", "INTEGER"),
+]
 
 
 def default_db_path() -> Path:
@@ -62,7 +74,19 @@ class Store:
         self.conn.row_factory = sqlite3.Row
         self.conn.execute("PRAGMA journal_mode=WAL")
         self.conn.executescript(_SCHEMA)
+        self._migrate()
         self.conn.commit()
+
+    def _migrate(self) -> None:
+        for table, column, col_type in _MIGRATIONS:
+            cols = {
+                r["name"]
+                for r in self.conn.execute(f"PRAGMA table_info({table})").fetchall()
+            }
+            if column not in cols:
+                self.conn.execute(
+                    f"ALTER TABLE {table} ADD COLUMN {column} {col_type}"
+                )
 
     def close(self) -> None:
         self.conn.close()
@@ -78,8 +102,9 @@ class Store:
     def save_finding(self, finding: MetricFinding, session_id: str) -> int:
         cur = self.conn.execute(
             """INSERT INTO findings
-               (session_id, class_name, metric, value, threshold, principle, severity, created_at)
-               VALUES (?,?,?,?,?,?,?,?)""",
+               (session_id, class_name, metric, value, threshold, principle, severity,
+                source_file, source_line, created_at)
+               VALUES (?,?,?,?,?,?,?,?,?,?)""",
             (
                 session_id,
                 finding.class_name,
@@ -88,6 +113,8 @@ class Store:
                 finding.threshold,
                 finding.principle.value,
                 finding.severity,
+                finding.source_file,
+                finding.source_line,
                 datetime.now().isoformat(),
             ),
         )
@@ -102,8 +129,8 @@ class Store:
                (id, session_id, finding_id, principle, severity, code_hash,
                 violation_reason, cost_example, before_code, after_code,
                 learning_points, revision_prompt, user_accepted, user_feedback,
-                generated_at, reviewed_at)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                source_file, source_line, generated_at, reviewed_at)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (
                 card.id,
                 card.session_id,
@@ -119,6 +146,8 @@ class Store:
                 card.revision_prompt,
                 None if card.user_accepted is None else int(card.user_accepted),
                 card.user_feedback,
+                card.source_file,
+                card.source_line,
                 card.generated_at.isoformat(),
                 card.reviewed_at.isoformat() if card.reviewed_at else None,
             ),
@@ -141,6 +170,8 @@ class Store:
             revision_prompt=row["revision_prompt"],
             user_accepted=None if row["user_accepted"] is None else bool(row["user_accepted"]),
             user_feedback=row["user_feedback"],
+            source_file=row["source_file"],
+            source_line=row["source_line"],
             generated_at=datetime.fromisoformat(row["generated_at"]),
             reviewed_at=datetime.fromisoformat(row["reviewed_at"]) if row["reviewed_at"] else None,
         )
@@ -156,6 +187,20 @@ class Store:
             "SELECT * FROM learning_cards WHERE user_accepted IS NULL ORDER BY id"
         ).fetchall()
         return [self._row_to_card(r) for r in rows]
+
+    def all_cards(self) -> list[LearningCard]:
+        rows = self.conn.execute(
+            "SELECT * FROM learning_cards ORDER BY id"
+        ).fetchall()
+        return [self._row_to_card(r) for r in rows]
+
+    # --- read for API (dict 반환) ---
+
+    def list_findings(self) -> list[dict]:
+        rows = self.conn.execute(
+            "SELECT * FROM findings ORDER BY id DESC"
+        ).fetchall()
+        return [dict(r) for r in rows]
 
     def review_card(
         self, card_id: str, accepted: bool, feedback: str | None = None

@@ -58,6 +58,8 @@ def generate_card(
         principle=finding.principle,
         severity=finding.severity,
         code_hash=hashlib.sha256(code.encode("utf-8")).hexdigest()[:16],
+        source_file=finding.source_file,
+        source_line=finding.source_line,
         violation_reason=parsed["violation_reason"],
         cost_example=parsed["cost_example"],
         before_code=parsed["before_code"],

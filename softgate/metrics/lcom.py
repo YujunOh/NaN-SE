@@ -24,6 +24,7 @@ class ClassCohesion:
     method_count: int
     field_count: int
     lcom4: int
+    line: int = 1
     components: list[list[str]] = field(default_factory=list)
 
     @property
@@ -132,6 +133,7 @@ def compute_lcom4(class_node: ast.ClassDef) -> ClassCohesion:
         method_count=len(names),
         field_count=len(all_fields),
         lcom4=len(components),
+        line=class_node.lineno,
         components=components,
     )
 

@@ -32,12 +32,14 @@ class Calc:
 
 
 def test_complex_method_flagged():
-    findings = findings_from_complexity(COMPLEX)
+    findings = findings_from_complexity(COMPLEX, "src/router.py")
     assert len(findings) == 1
     assert findings[0].metric == "cyclomatic"
-    assert findings[0].principle is Principle.SRP
+    assert findings[0].principle is Principle.OCP
     assert "Router.route" in findings[0].class_name
     assert findings[0].value > 10
+    assert findings[0].source_file == "src/router.py"
+    assert findings[0].source_line == 3
 
 
 def test_simple_method_not_flagged():

@@ -26,6 +26,8 @@ class MetricFinding:
     threshold: float
     principle: Principle
     severity: int  # 0-10, 클수록 심각
+    source_file: str | None = None
+    source_line: int | None = None
 
 
 def _lcom4_severity(lcom4: int) -> int:
@@ -34,8 +36,13 @@ def _lcom4_severity(lcom4: int) -> int:
     return min(10, over * 3)
 
 
-def findings_from_cohesion(results: list[ClassCohesion]) -> list[MetricFinding]:
-    """LCOM4 결과 중 임계값 초과 클래스를 SRP 위반 finding으로 변환."""
+def findings_from_cohesion(
+    results: list[ClassCohesion], source_file: str | None = None
+) -> list[MetricFinding]:
+    """LCOM4 결과 중 임계값 초과 클래스를 SRP 위반 finding으로 변환.
+
+    클래스 응집 결함(서로 무관한 책임 덩어리)은 SRP 렌즈로 본다.
+    """
     findings: list[MetricFinding] = []
     for r in results:
         if r.lcom4 > LCOM4_THRESHOLD:
@@ -47,6 +54,8 @@ def findings_from_cohesion(results: list[ClassCohesion]) -> list[MetricFinding]:
                     threshold=float(LCOM4_THRESHOLD),
                     principle=Principle.SRP,
                     severity=_lcom4_severity(r.lcom4),
+                    source_file=source_file,
+                    source_line=r.line,
                 )
             )
     return findings

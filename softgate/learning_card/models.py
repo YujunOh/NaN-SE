@@ -18,6 +18,10 @@ class LearningCard(BaseModel):
     severity: int = Field(ge=0, le=10)
     code_hash: str
 
+    # 소스 위치 (빠른 추적용). 결정적 검출층이 채운다.
+    source_file: str | None = None
+    source_line: int | None = None
+
     # LLM이 채우는 자연어 콘텐츠 (채점 아님, 설명만)
     violation_reason: str
     cost_example: str

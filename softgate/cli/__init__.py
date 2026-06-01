@@ -22,8 +22,10 @@ app = typer.Typer(help="바이브코딩에 SW공학 프로세스를 끼워넣는
 console = Console()
 
 
-def _collect_findings(source: str) -> list[MetricFinding]:
-    return findings_from_cohesion(analyze_source(source)) + findings_from_complexity(source)
+def _collect_findings(source: str, source_file: str | None = None) -> list[MetricFinding]:
+    return findings_from_cohesion(
+        analyze_source(source), source_file
+    ) + findings_from_complexity(source, source_file)
 
 
 @app.command()
@@ -46,20 +48,23 @@ def analyze(path: Path) -> None:
         )
     console.print(metrics_table)
 
-    findings = _collect_findings(source)
+    findings = _collect_findings(source, str(path))
     if not findings:
         console.print("[green]위반 finding 없음.[/green]")
         return
 
     ftable = Table(title="위반 finding")
     ftable.add_column("대상")
+    ftable.add_column("위치")
     ftable.add_column("지표")
     ftable.add_column("값/임계", justify="center")
     ftable.add_column("원칙")
     ftable.add_column("심각도", justify="right")
     for f in findings:
+        loc = f"{path.name}:{f.source_line}" if f.source_line else path.name
         ftable.add_row(
             f.class_name,
+            loc,
             f.metric,
             f"{f.value:g} / {f.threshold:g}",
             f.principle.name,
@@ -75,7 +80,7 @@ def learn(path: Path, db: Path | None = None) -> None:
     검출은 결정적, 설명만 LLM. ANTHROPIC_API_KEY 필요.
     """
     source = path.read_text(encoding="utf-8")
-    findings = _collect_findings(source)
+    findings = _collect_findings(source, str(path))
     if not findings:
         console.print("[green]위반 finding 없음. 생성할 카드 없음.[/green]")
         return
@@ -153,32 +158,124 @@ def review(card_id: str, db: Path | None = None) -> None:
 
 @app.command(name="seed-demo")
 def seed_demo(db: Path | None = None) -> None:
-    """API 키 없이 검수 흐름을 테스트하도록 예시 카드 1장을 넣는다."""
+    """API 키 없이 대시보드/검수 흐름을 보도록 예시 finding·카드를 채운다.
+
+    원칙(SRP·OCP)과 파일·라인, 채택/거절/대기 상태가 섞인 데이터다.
+    """
+    from datetime import timedelta
+
+    day0 = datetime.now() - timedelta(days=1)
+    day1 = datetime.now()
+
+    # (class_name, metric, value, threshold, principle, severity, file, line)
+    specs = [
+        ("AuthService", "lcom4", 3.0, 1.0, Principle.SRP, 6,
+         "src/auth/service.py", 12,
+         "AuthService가 인증·이메일·토큰 발급을 한 클래스에 모아 응집이 갈라졌다. LCOM4=3.",
+         "이메일 로직 한 줄 바꿔도 인증 모듈 전체 회귀가 필요해 배포가 지연된다.",
+         "class AuthService:\n    def login(self): ...\n    def send_email(self): ...\n    def issue_token(self): ...",
+         "class AuthService:\n    def login(self): ...\nclass EmailNotifier: ...\nclass TokenService: ...",
+         ["변경 사유가 다르면 클래스도 다르게", "응집이 낮으면 테스트 격리가 어렵다"],
+         "AuthService를 AuthService/EmailNotifier/TokenService로 분리하라.",
+         True, None, day0),
+        ("OrderRouter.route", "cyclomatic", 14.0, 10.0, Principle.OCP, 4,
+         "src/order/router.py", 47,
+         "route가 결제수단마다 if/elif로 분기해 새 수단을 더할 때마다 이 메서드를 다시 연다.",
+         "수단 추가 한 번이 핵심 분기 메서드 수정을 강제해 회귀 위험이 매 배포 누적된다.",
+         "def route(self, kind):\n    if kind == 'card': ...\n    elif kind == 'bank': ...\n    elif kind == 'point': ...",
+         "handlers = {'card': CardHandler(), ...}\n\ndef route(self, kind):\n    return handlers[kind].handle()",
+         ["분기 폭증은 OCP 위반 신호", "전략 매핑으로 확장은 열고 변경은 닫는다"],
+         "route의 if/elif 분기를 핸들러 매핑(전략 패턴)으로 바꿔라.",
+         None, None, day1),
+        ("ReportBuilder", "lcom4", 4.0, 1.0, Principle.SRP, 9,
+         "src/report/builder.py", 8,
+         "ReportBuilder가 집계·서식·파일쓰기·메일발송 네 책임을 모아 LCOM4=4.",
+         "서식 한 가지 바꾸려다 메일 발송 경로까지 깨져 장애로 이어진다.",
+         "class ReportBuilder:\n    def aggregate(self): ...\n    def format(self): ...\n    def write_file(self): ...\n    def send_mail(self): ...",
+         "class ReportAggregator: ...\nclass ReportFormatter: ...\nclass ReportWriter: ...\nclass ReportMailer: ...",
+         ["책임이 넷이면 변경 이유도 넷", "큰 클래스일수록 분리 이득이 크다"],
+         "ReportBuilder를 집계/서식/쓰기/발송 네 클래스로 분리하라.",
+         False, "교정 예시의 분리 단위가 우리 도메인과 안 맞아 거절.", day0),
+        ("PaymentGateway", "lcom4", 2.0, 1.0, Principle.SRP, 3,
+         "src/payment/gateway.py", 20,
+         "PaymentGateway가 결제 처리와 로깅 책임을 함께 들고 있어 LCOM4=2.",
+         "로깅 포맷 변경이 결제 경로 테스트를 통째로 다시 돌리게 만든다.",
+         "class PaymentGateway:\n    def charge(self): ...\n    def write_log(self): ...",
+         "class PaymentGateway:\n    def charge(self): ...\nclass PaymentLogger:\n    def write_log(self): ...",
+         ["로깅은 횡단 관심사로 분리", "응집 회복이 테스트 범위를 좁힌다"],
+         "PaymentGateway에서 로깅 책임을 PaymentLogger로 분리하라.",
+         True, None, day1),
+        ("DataSync.run", "cyclomatic", 12.0, 10.0, Principle.OCP, 2,
+         "src/sync/data_sync.py", 33,
+         "run이 소스 종류별 분기를 한 메서드에 쌓아 순환복잡도 12.",
+         "동기화 대상이 늘 때마다 run을 수정해 기존 경로 회귀를 떠안는다.",
+         "def run(self, src):\n    if src == 'db': ...\n    elif src == 'api': ...\n    elif src == 'file': ...",
+         "syncers = {'db': DbSyncer(), ...}\n\ndef run(self, src):\n    syncers[src].sync()",
+         ["분기 대신 매핑으로 확장 지점을 외부화", "복잡도는 경로 수에 비례"],
+         "run의 소스별 분기를 syncer 매핑으로 교체하라.",
+         None, None, day1),
+    ]
+
     with Store(db) as store:
-        card = LearningCard(
-            id=store.next_card_id(),
-            session_id="demo",
-            finding_id=0,
-            principle=Principle.SRP,
-            severity=6,
-            code_hash="demo000000000000",
-            violation_reason=(
-                "AuthService가 인증, 이메일 발송, 토큰 발급을 모두 담당해 "
-                "책임이 셋으로 갈렸다. LCOM4=3."
-            ),
-            cost_example="이메일 로직 변경 시 인증 모듈 전체 회귀가 필요해 배포가 지연된다.",
-            before_code="class AuthService:\n    def login(self): ...\n    def send_email(self): ...\n    def issue_token(self): ...",
-            after_code="class AuthService:\n    def login(self): ...\nclass EmailNotifier:\n    def send_email(self): ...\nclass TokenService:\n    def issue_token(self): ...",
-            learning_points=[
-                "SRP는 클래스가 변경되는 이유가 하나여야 한다는 원칙",
-                "책임 분리는 테스트 격리에도 도움",
-                "변경 사유가 다르면 클래스도 다르게",
-            ],
-            revision_prompt="AuthService를 AuthService/EmailNotifier/TokenService로 분리하라.",
-            generated_at=datetime.now(),
+        for i, s in enumerate(specs, start=1):
+            (cname, metric, value, thr, principle, sev, sfile, sline,
+             reason, cost, before, after, points, prompt, accepted, fb, gen) = s
+            session_id = gen.strftime("%Y%m%d-%H%M")
+            finding = MetricFinding(
+                class_name=cname, metric=metric, value=value, threshold=thr,
+                principle=principle, severity=sev,
+                source_file=sfile, source_line=sline,
+            )
+            finding_id = store.save_finding(finding, session_id)
+            card = LearningCard(
+                id=f"CARD-{i:03d}",
+                session_id=session_id,
+                finding_id=finding_id,
+                principle=principle,
+                severity=sev,
+                code_hash=f"h{i:013d}",
+                violation_reason=reason,
+                cost_example=cost,
+                before_code=before,
+                after_code=after,
+                learning_points=points,
+                revision_prompt=prompt,
+                user_accepted=accepted,
+                user_feedback=fb,
+                source_file=sfile,
+                source_line=sline,
+                generated_at=gen,
+                reviewed_at=(gen if accepted is not None else None),
+            )
+            store.save_card(card)
+    console.print(
+        f"[green]예시 finding·카드 {len(specs)}건 저장됨.[/green] "
+        "'softgate serve'로 대시보드 확인."
+    )
+
+
+@app.command()
+def serve(
+    db: Path | None = None,
+    host: str = "127.0.0.1",
+    port: int = 8000,
+) -> None:
+    """대시보드용 읽기 API를 띄운다 (FastAPI + uvicorn).
+
+    검출·설명 결과를 읽기만 노출한다. 검수는 'softgate review'에 남는다.
+    """
+    try:
+        import uvicorn
+    except ModuleNotFoundError:
+        console.print(
+            "[red]API 의존성이 없음.[/red] 'pip install -e .[api]'로 설치 후 다시 실행."
         )
-        store.save_card(card)
-    console.print(f"[green]예시 카드 {card.id} 저장됨.[/green] 'softgate cards'로 확인.")
+        raise typer.Exit(1)
+
+    from softgate.api import create_app
+
+    console.print(f"[green]API 기동:[/green] http://{host}:{port}/api/health")
+    uvicorn.run(create_app(db), host=host, port=port)
 
 
 if __name__ == "__main__":

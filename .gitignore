@@ -32,9 +32,29 @@ env/
 .DS_Store
 Thumbs.db
 
-# Claude / opencode local artifacts
+# Claude / opencode / serena local artifacts
 .claude/
 .opencode/
+.serena/
+
+# Test / tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual envs (extra)
+.hwp-venv/
+
+# Node / frontend (web 대시보드)
+node_modules/
+web/dist/
+*.tsbuildinfo
+
+# hwpx 작업 부산물 (softgate와 무관)
+_hwpx*/
+tmp_kor*.hwpx
+tmp_kor_demo.py
+gen_hw7_hwpx.py
 
 # Logs
 *.log
