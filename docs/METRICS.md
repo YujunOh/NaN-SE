@@ -1,128 +1,40 @@
-# Metrics: Function Point + Earned Value
+# Metrics: 검출 지표 (LCOM4 · 순환복잡도)
 
-> **피벗 반영(Day 5)**: 검출은 결정론적 메트릭(LCOM4, 순환복잡도)이 하고 LLM은 채점하지 않는다. 아래 ISO 25010 매핑의 옛 "SOLID Judge" 표현은 결정론적 검출(Metric Analyzer)로 정정한다. FP/EV는 보고서 설계 범위로, 현재 구현은 검출·설명 폐루프에 한정한다.
+softgate가 실제로 측정하는 지표는 둘이다. 클래스 응집도(LCOM4)와 함수 순환복잡도. 둘 다 결정론적 정적 분석이라 같은 코드를 넣으면 늘 같은 값이 나오고, LLM은 여기 관여하지 않는다. 값이 임계치를 넘은 곳을 finding으로 표시하고, 그 뒤 설명은 학습 카드(LLM)가 맡는다.
 
-softgate가 측정하는 두 정량 지표(FP, EV)의 정의·계산 방식·자동화 메커니즘.
+구현 위치: `softgate/metrics/lcom.py`, `softgate/metrics/complexity.py`, `softgate/metrics/findings.py`.
 
-## 1. Function Point (FP)
+## 1. LCOM4 (클래스 응집도)
 
-소프트웨어 규모를 기능 관점에서 측정하는 표준 지표 (IFPUG 기준).
+한 클래스의 메서드들이 같은 일을 향하는지 본다. 메서드를 점으로 두고, 같은 필드를 쓰거나 서로 호출하면 선으로 잇는다. 이 그래프에서 끊겨 있는 덩어리(연결 요소)의 개수가 LCOM4다.
 
-### 1.1 5가지 component
+- LCOM4 = 1: 모든 메서드가 한 덩어리. 응집된 클래스.
+- LCOM4 ≥ 2: 서로 안 엮인 책임 덩어리가 둘 이상. 클래스가 여러 일을 동시에 한다는 신호.
 
-| 기호 | 영문 | 설명 |
-|---|---|---|
-| EI | External Input | 시스템에 입력되는 데이터 (사용자 입력, 외부 API 호출 등) |
-| EO | External Output | 시스템이 출력하는 데이터 (보고서, 알림, 화면 표시 등) |
-| EQ | External Query | 입력 후 즉시 응답하는 조회 (검색, 필터링 등). 데이터 변경 없음 |
-| ILF | Internal Logical File | 시스템 내부에서 관리되는 논리적 데이터 집합 (DB 테이블 등) |
-| EIF | External Interface File | 외부 시스템과 공유하는 데이터 집합. 본 시스템은 참조만 |
+임계치 1. LCOM4는 1이 이상적이라는 게 원 정의(Hitz & Montazeri)다. 2부터는 분리 가능한 책임으로 갈라졌다는 뜻이라, 1을 초과하면 SRP(단일 책임) 위반 의심으로 본다. 생성자 같은 dunder 메서드는 모든 필드를 건드려 응집을 인위적으로 높이므로 계산에서 뺀다.
 
-### 1.2 복잡도별 가중치 (IFPUG 표준)
+매핑 원칙: Single Responsibility. 검출 시 `ast.ClassDef`의 `lineno`로 위치(source_file·source_line)를 함께 기록한다.
 
-| Component | Low | Average | High |
-|---|---|---|---|
-| EI | 3 | 4 | 6 |
-| EO | 4 | 5 | 7 |
-| EQ | 3 | 4 | 6 |
-| ILF | 7 | 10 | 15 |
-| EIF | 5 | 7 | 10 |
+## 2. 순환복잡도 (Cyclomatic Complexity)
 
-복잡도는 DET (Data Element Type) 개수와 FTR/RET (File Type Referenced / Record Element Type) 개수에 따라 결정.
+한 함수나 메서드 안에 독립적인 실행 경로가 몇 개인지 센다. if·elif·for·while·and·or 같은 분기마다 경로가 하나씩 늘어난다. 경로가 많을수록 테스트로 덮어야 할 경우의 수가 늘고, 한 곳을 고칠 때 영향 범위를 가늠하기 어렵다.
 
-### 1.3 UFP 계산
+임계치 10. McCabe가 1976년 원 논문에서 모듈당 10을 권고했고, 이후 NIST 등 다수 가이드가 이 값을 그대로 쓴다. 10을 넘으면 테스트·유지보수 난도가 급격히 오른다는 경험적 기준이다. softgate는 McCabe 구현을 재발명하지 않고 radon 라이브러리(`cc_visit`) 값을 그대로 쓴다.
 
-```
-UFP (Unadjusted Function Points) = Σ (component count × weight)
-```
+매핑 원칙: Open-Closed. 결제수단·상태마다 if/elif가 쌓이면, 새 경우를 더할 때마다 그 메서드를 다시 열어야 하므로 확장에 닫혀 있다고 본다. radon block의 `lineno`로 위치를 기록한다.
 
-예시: EI 5개(Average) + EO 3개(High) + ILF 2개(Average)
-→ 5×4 + 3×7 + 2×10 = 20 + 21 + 20 = **61 UFP**
+## 3. 지표가 못 보는 것
 
-### 1.4 softgate 자동 계산
+두 지표는 구조를 본다. 런타임 행동은 못 본다.
 
-`softgate fp add <kind> <complexity>` CLI로 사용자가 component를 입력하면, 가중치 표를 기반으로 자동 합산.
+- 동적 디스패치·런타임 결합: 정적으로 안 잡힌다.
+- 결합도(Ca/Ce, Instability), LSP·ISP·DIP 위반: 검출하지 않는다. 기계적 판정이 어렵거나 확률적 채점이 필요한 영역이라 의도적으로 뺐다.
+- LCOM4는 "분리가 필요하다"는 신호는 주지만 "이건 교환적 응집"처럼 응집 7단계 명칭을 붙이지는 않는다.
 
-```python
-WEIGHTS = {
-    ('EI',  'low'): 3, ('EI',  'avg'): 4, ('EI',  'high'): 6,
-    ('EO',  'low'): 4, ('EO',  'avg'): 5, ('EO',  'high'): 7,
-    ('EQ',  'low'): 3, ('EQ',  'avg'): 4, ('EQ',  'high'): 6,
-    ('ILF', 'low'): 7, ('ILF', 'avg'): 10, ('ILF', 'high'): 15,
-    ('EIF', 'low'): 5, ('EIF', 'avg'): 7, ('EIF', 'high'): 10,
-}
-```
+이 한계는 보고서에 그대로 적는다. 무엇을 못 보는지를 학습 카드가 따로 환기하기도 한다.
 
-가중치 표는 `softgate/fp_counter.py`에 하드코딩 (외부 입력 변경 차단).
+## 4. (원설계 기록) Function Point · Earned Value
 
-## 2. Earned Value (EV)
+피벗 전 SOLID Judge 시기 설계에는 IFPUG Function Point 카운터와 PMBOK Earned Value 추적기가 도구 모듈로 들어 있었다. Day 5 피벗에서 검출·설명 폐루프로 범위를 좁히며 둘 다 구현하지 않았다. 현재 `softgate` 패키지에 `fp_counter`·`ev_tracker` 모듈도, `softgate fp`·`softgate wbs ev` 명령도 없다.
 
-프로젝트 진척을 정량 측정하는 지표 (PMI PMBOK 기준).
-
-### 2.1 핵심 지표
-
-| 기호 | 영문 | 풀이 | 설명 |
-|---|---|---|---|
-| PV | Planned Value | BCWS (Budgeted Cost of Work Scheduled) | 특정 시점까지 예정된 작업의 계획 가치 |
-| EV | Earned Value | BCWP (Budgeted Cost of Work Performed) | 특정 시점까지 실제 완료된 작업의 계획 가치 |
-| AC | Actual Cost | ACWP (Actual Cost of Work Performed) | 특정 시점까지 실제 투입된 비용/시간 |
-| BAC | Budget at Completion | - | 전체 프로젝트의 계획 총 가치 |
-
-### 2.2 파생 지표
-
-| 지표 | 공식 | 의미 |
-|---|---|---|
-| SV | EV - PV | Schedule Variance. + 이면 일정 앞섬, - 이면 지연 |
-| CV | EV - AC | Cost Variance. + 이면 예산 내, - 이면 초과 |
-| SPI | EV / PV | Schedule Performance Index. 1.0 = on schedule |
-| CPI | EV / AC | Cost Performance Index. 1.0 = on budget |
-| EAC | BAC / CPI | Estimate At Completion. 예상 최종 비용 |
-| ETC | EAC - AC | Estimate To Complete. 남은 예상 비용 |
-| VAC | BAC - EAC | Variance At Completion. 예상 최종 차이 |
-
-### 2.3 softgate 자동 계산
-
-- **PV**: `docs/WBS.md`의 "EV 가중치 누적" 컬럼 기준 일별 누적 % 자동 파싱
-- **EV**: 완료된 WBS task의 가중치 합계. commit 기반 자동 추정 (commit message에 task ID 매칭) + 사용자 확인
-- **AC**: 실제 투입 시간. 사용자가 입력하거나 git log timestamp 차이로 추정
-
-`softgate wbs ev` CLI 실행 시 위 공식으로 자동 계산되어 `docs/EV_LOG.md`에 일별 스냅샷 기록.
-
-## 3. FP × EV 통합
-
-FP가 측정한 기능 규모를 EV의 가중치로 변환 가능.
-
-```
-WBS task의 PV 가중치 = (task에 속한 component의 FP 합) / (전체 프로젝트 UFP) × 100%
-```
-
-예시:
-- 전체 프로젝트 UFP = 200
-- Track 1 task A의 FP 합 = 40
-- → task A의 PV 가중치 = 40 / 200 = **20%**
-
-이 매핑이 softgate의 EV Tracker가 FP Counter 결과를 수용하는 인터페이스(`include_fp(fp_total)`)의 핵심.
-
-## 4. 한계
-
-- **FP 산정의 주관성**: 복잡도(low/avg/high) 판정이 사람마다 다를 수 있는 상황. IFPUG 가이드라인을 따라도 ±20% 변동 가능. 동일 시스템을 5명이 산정하면 결과가 5개 나오는 게 일반적
-- **EV의 binary 완료 가정**: 실제로는 task가 50% 완료 같은 중간 상태로 존재. softgate는 단순화 위해 binary(완료/미완료)로 처리. 부분 진척률을 따로 입력하는 옵션은 향후 추가 검토
-- **AC의 시간 측정**: 자동 추정이 어려움. 사용자가 직접 입력하는 것이 정확. git log timestamp는 보조 지표
-
-## 5. ISO 25010 매핑 (Process Log 연동)
-
-EV 측정 결과는 ISO 25010 품질 9축에 매핑되어 Process Log에서 시각화.
-
-| ISO 25010 축 | softgate 측정 대응 |
-|---|---|
-| 기능적합성 | Requirement Coverage (요구사항 만족률) |
-| 성능효율성 | hook 응답 시간 (≤ 500ms 충족률) |
-| 호환성 | (Future Work - multi-vendor) |
-| 사용성 | CLI 명령 사용 빈도 (간접) |
-| 신뢰성 | 검출 finding 해소율 (Metric Analyzer) |
-| 보안성 | (Future Work - TEE) |
-| 유지보수성 | LCOM4(모듈성)·순환복잡도(분석성) |
-| 이식성 | (Future Work - multi-vendor) |
-| 안전성 | force_overrides 빈도 (낮을수록 안전) |
-
-(Future Work 표시 항목은 현재 prototype 범위 밖)
+EV(SPI/CPI)는 이 과제 자체의 일정 관리 용도로만 `docs/WBS.md`에서 손계산으로 쓴다. 도구가 사용자 코드의 FP나 프로젝트 EV를 자동 계산한다고 보고서에 적지 않는다. FP/EV 표준 정의를 학습한 흔적은 WBS.md 일정 절에 남아 있다.

@@ -4,27 +4,19 @@
 
 ## 1. Choreography 이벤트 버스
 
-현재 6 모듈은 SQLite 공유 + 직접 호출 구조. 확장 시 publish/subscribe 미들웨어로 분리 가능.
+현재 구현은 검출·설명 모듈이 SQLite 공유 + 직접 호출로 묶여 있다. 확장 시 publish/subscribe 미들웨어로 분리 가능. 아래 이벤트 예시 중 구현된 흐름은 `MetricFound`(검출 후 학습 카드 생성)뿐이고, 나머지(Stage, UseCase Logger 등)는 피벗 때 접은 원설계 모듈이라 가상의 예시다.
 
 예상 이벤트:
-- `RequirementCreated` → Stage, UseCase Logger 구독
-- `EditAttempted` → Stage (차단 결정), Process Log (기록) 구독
-- `MetricFound` → Learning Card Generator (설명 카드 생성) 구독
-- `StageCompleted` → EV Tracker (가중치 갱신), FP Counter (관련 component 계산) 구독
+- `MetricFound` → Learning Card Generator (설명 카드 생성) 구독. 현재 직접 호출로 구현됨
+- `RequirementCreated`, `EditAttempted`, `StageCompleted` → 원설계 모듈(Stage, Process Log 등) 대상. 미구현
 
 이 구조의 이론적 배경은 분산 시스템 영역에서 오래 다뤄진 service choreography 패턴. 모듈 간 결합도를 자료 결합 수준까지 낮추는 효과. 본 과제 prototype에서는 SQLite `events` 테이블 polling으로 흉내내는 수준이지만, 진짜 pub/sub 미들웨어(Redis Streams, NATS, Kafka 등)로 교체하면 확장성과 다중 노드 운용까지 가능한 구조로 갈 수 있음.
 
 ## 2. TEE 기반 로컬 실행
 
-민감한 코드 (금융·의료·기업 사내 코드) 대상에는 학습 카드 생성용 LLM 설명층을 TEE 안에서 실행. 코드가 외부 LLM 서버로 유출되지 않도록 차단.
+진짜 갭이 하나 있다. 검출은 로컬에서 결정론적으로 끝나 코드가 나가지 않지만, 학습 카드 생성 단계에서는 대상 코드를 Anthropic API로 그대로 보낸다. 개인 학습용 repo에서는 괜찮아도 기업 사내 코드라면 도입 차단 요인이다.
 
-현재 prototype는 학습 카드 생성 시 Anthropic API에 대상 코드를 그대로 전송하는 구조. 검출은 로컬에서 결정론적으로 끝나므로 코드가 나가지 않지만, 설명 단계에서는 나간다. 개인 학습용 repo 수준에서는 OK이지만 기업 도입 시 차단 요인이 되는 부분. 해결 방향:
-
-- 로컬 LLM (Llama, Qwen 등) + TEE 환경 (Intel SGX, AMD SEV, ARM TrustZone)
-- 코드 hash만 외부 API로 보내고 실제 텍스트는 TEE 내부에서만 처리
-- audit log를 attestation 가능한 형태로 기록
-
-이 영역은 학습 곡선이 큰 부분. 12일 범위 밖.
+해결 방향은 설명층 LLM을 로컬 모델(Llama, Qwen 등)로 돌려 코드가 외부로 나가지 않게 하는 것이다. 격리 실행(TEE 등)이나 attestation 가능한 audit log까지 가면 더 단단해지지만, 강의 범위 밖 하드웨어 주제라 본 보고서에서는 한 줄 방향 제시로만 둔다. 12일 범위 밖.
 
 ## 3. Multi-vendor
 

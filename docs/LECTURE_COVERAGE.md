@@ -45,9 +45,9 @@ OCP/DIP/LSP/ISP를 LLM에 채점시키지 않는 건 의도적 결정이다. 확
 |---|---|---|
 | 유스케이스 다이어그램(include·extend, 점선·화살표) | REQUIREMENTS.md에 Mermaid로 작성, 관계 정당화 | 문서 |
 | 동사=기능 / 형용사=비기능 요구 구분 | REQUIREMENTS 비기능 요구 절에 반영 | 문서 |
-| 단계별 진입 조건(invariant)·보상 트랜잭션 | SAGA 패턴을 SDLC에 적용한 Stage 설계 | 문서/얇은 데모 |
-| WBS·EV(SPI/CPI)·여유시간·브룩스 법칙 | WBS.md 일정·EV 계산식·Brooks 위험으로 반영 | 문서 |
-| 아키텍처 패턴(전략·choreography) | ARCHITECTURE.md, FUTURE_WORK.md choreography 이벤트 버스 | 문서 |
+| 단계별 진입 조건·보상 트랜잭션 | 설계 문서에서 개념만 언급. SDLC 단계에 보상 트랜잭션을 비유한 것이라 분산 트랜잭션 SAGA의 직접 적용은 아니다. Stage 코드 없음 | 문서(개념) |
+| WBS·EV(SPI/CPI)·여유시간·브룩스 법칙 | 이 과제 자체의 일정 관리에 WBS.md 일정·EV 손계산·Brooks 위험으로 반영. 도구 기능은 아님 | 문서 |
+| 아키텍처 패턴(전략·choreography) | 전략 패턴은 OCP 예시(`examples/`)로 설명. choreography 이벤트 버스는 FUTURE_WORK.md의 미구현 확장 방향 | 문서 |
 
 ## 5. 정직한 갭
 

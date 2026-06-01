@@ -110,11 +110,11 @@ IP가 본질적으로 unreliable하지만 TCP 덕분에 사용자가 안심하�
 
 ### 옵션 모듈 (선택 사용)
 
-다음 모듈은 정량 지표용. 핵심 가치는 위 4개에 집중.
+다음 모듈은 원설계의 정량 지표용 구상이다. Day 5 피벗에서 검출·설명 폐루프로 범위를 좁히며 셋 다 구현하지 않았다(코드 없음). 핵심 가치는 검출·설명에 집중한다.
 
-- **EV Tracker** — PV/EV/SPI/CPI 자동 계산
-- **FP Counter** — IFPUG 표준 FP 자동 산정
-- **Process Log** — ISO 25010 품질 9축 매핑 시각화
+- **EV Tracker** — PV/EV/SPI/CPI 자동 계산 (미구현)
+- **FP Counter** — IFPUG 표준 FP 자동 산정 (미구현)
+- **Process Log** — ISO 25010 품질 9축 매핑 시각화 (미구현)
 
 ---
 

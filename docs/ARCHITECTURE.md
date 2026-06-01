@@ -1,10 +1,12 @@
 # Architecture: softgate
 
 > **피벗 반영(Day 5)**: LLM 채점(SOLID Judge)을 폐기하고 결정론적 검출(Metric Analyzer: LCOM4, 순환복잡도)과 LLM 설명(Learning Card)으로 분리했다. 아래 다이어그램·표의 옛 "SOLID Judge" 노드는 검출층 Metric Analyzer로 읽는다. 검출은 LLM을 쓰지 않으므로 "LLM judge subagent"는 LLM 설명층 호출로 정정한다. 경위는 DISCUSSION_LOG.md Day 5.
+>
+> **구현 범위 (정직 표기)**: 실제 코드(`softgate/`)에 있는 것은 검출(`metrics/`: lcom·complexity·findings) + 설명(`learning_card/`) + 저장(`db/`) + 읽기 API(`api/`) + CLI + 웹 UI다. 아래 1·2절의 5 Stage(SAGA), EV Tracker, FP Counter, Process Log, Choreography 이벤트 버스는 피벗 때 접은 원설계이고 코드로 구현하지 않았다. 이 절들은 설계 사고 기록으로 읽고, 도구 기능으로 오해하지 않도록 한다. 실제 동작 지표 정의는 METRICS.md를 따른다.
 
 ## 0. 한 줄 요약
 
-핵심 폐루프(Metric Analyzer 검출 + Learning Card 설명) + Stage / Traceability(얇은 데모) + Progress Dashboard(설계) + SQLite 단일 store + LLM 설명층 subagent + Claude Code Hook 통합.
+구현된 것: 핵심 폐루프(Metric Analyzer 검출 + Learning Card 설명) + SQLite 단일 store + 읽기 API + 웹 대시보드 + Claude Code Hook 통합. 설계로만 남은 것: 5 Stage, Traceability, Progress Dashboard 모듈, EV/FP/Process Log.
 
 ## 1. 5 Stage (SAGA 패턴 — 부드러운 적용)
 
