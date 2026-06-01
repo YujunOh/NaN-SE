@@ -3,6 +3,6 @@
 검수(채택/거절)는 CLI에 남긴다. 여기서는 읽기만 한다.
 """
 
-from softgate.api.app import create_app
+from nanse.api.app import create_app
 
 __all__ = ["create_app"]

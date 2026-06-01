@@ -42,7 +42,7 @@ class _MethodScanner(ast.NodeVisitor):
 
     def visit_Attribute(self, node: ast.Attribute) -> None:
         if isinstance(node.value, ast.Name) and node.value.id == self.self_name:
-            parent = getattr(node, "_softgate_parent", None)
+            parent = getattr(node, "_nanse_parent", None)
             if isinstance(parent, ast.Call) and parent.func is node:
                 self.calls.add(node.attr)
             else:
@@ -87,7 +87,7 @@ def _self_param_name(node: ast.FunctionDef | ast.AsyncFunctionDef) -> str | None
 def _tag_parents(tree: ast.AST) -> None:
     for parent in ast.walk(tree):
         for child in ast.iter_child_nodes(parent):
-            child._softgate_parent = parent  # type: ignore[attr-defined]
+            child._nanse_parent = parent  # type: ignore[attr-defined]
 
 
 def _is_dunder(name: str) -> bool:

@@ -11,9 +11,9 @@ import sqlite3
 from datetime import datetime
 from pathlib import Path
 
-from softgate.learning_card.models import LearningCard
-from softgate.metrics.findings import MetricFinding
-from softgate.principles import Principle
+from nanse.learning_card.models import LearningCard
+from nanse.metrics.findings import MetricFinding
+from nanse.principles import Principle
 
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS findings (
@@ -62,7 +62,7 @@ _MIGRATIONS = [
 
 
 def default_db_path() -> Path:
-    return Path.home() / ".softgate" / "softgate.db"
+    return Path.home() / ".nanse" / "nanse.db"
 
 
 class Store:

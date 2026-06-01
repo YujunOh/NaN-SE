@@ -50,7 +50,7 @@ node_modules/
 web/dist/
 *.tsbuildinfo
 
-# hwpx 작업 부산물 (softgate와 무관)
+# hwpx 작업 부산물 (nanse와 무관)
 _hwpx*/
 tmp_kor*.hwpx
 tmp_kor_demo.py

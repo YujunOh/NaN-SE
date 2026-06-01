@@ -1,10 +1,12 @@
 import { useState } from "react";
+import Landing from "./components/Landing";
 import Overview from "./components/Overview";
 import Findings from "./components/Findings";
 import Cards from "./components/Cards";
 import Metrics from "./components/Metrics";
 
 const TABS = [
+  { key: "home", label: "소개" },
   { key: "overview", label: "개요" },
   { key: "findings", label: "Findings" },
   { key: "cards", label: "학습 카드" },
@@ -14,7 +16,7 @@ const TABS = [
 type TabKey = (typeof TABS)[number]["key"];
 
 export default function App() {
-  const [tab, setTab] = useState<TabKey>("overview");
+  const [tab, setTab] = useState<TabKey>("home");
   const [principleFilter, setPrincipleFilter] = useState<string | null>(null);
 
   const openFindings = (principle: string | null) => {
@@ -26,7 +28,7 @@ export default function App() {
     <div className="app">
       <header className="topbar">
         <div className="brand">
-          softgate <span className="brand-sub">dashboard</span>
+          NaN-SE <span className="brand-sub">dashboard</span>
         </div>
         <nav className="tabs">
           {TABS.map((t) => (
@@ -42,6 +44,7 @@ export default function App() {
       </header>
 
       <main className="content">
+        {tab === "home" && <Landing onEnter={(t) => setTab(t)} />}
         {tab === "overview" && <Overview onPrincipleSelect={openFindings} />}
         {tab === "findings" && (
           <Findings
@@ -55,7 +58,7 @@ export default function App() {
       </main>
 
       <footer className="foot muted small">
-        검출은 결정론적 메트릭, 설명은 LLM. 검수(채택/거절)는 CLI(softgate review)에서.
+        검출은 결정론적 메트릭, 설명은 LLM. 검수(채택/거절)는 CLI(nanse review)에서.
       </footer>
     </div>
   );

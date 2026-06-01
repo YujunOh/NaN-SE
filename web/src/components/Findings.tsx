@@ -19,7 +19,7 @@ export default function Findings({
   if (loading) return <p className="muted">불러오는 중...</p>;
   if (error) return <p className="error">API 연결 실패: {error}</p>;
   if (!data || data.length === 0)
-    return <p className="muted">검출된 finding이 없다. 'softgate learn'으로 카드를 생성해 보라.</p>;
+    return <p className="muted">검출된 finding이 없다. 'nanse learn'으로 카드를 생성해 보라.</p>;
 
   const rows = principleFilter
     ? data.filter((f) => f.principle === principleFilter)

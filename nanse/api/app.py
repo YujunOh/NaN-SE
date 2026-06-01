@@ -11,8 +11,68 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from softgate.db import Store
-from softgate.learning_card.models import LearningCard
+from nanse.db import Store
+from nanse.learning_card.models import LearningCard
+
+GITHUB_BASE = "https://github.com/YujunOh/nanse/blob/main/docs"
+
+# 첫 화면에서 바로 보여줄 문서 묶음. (slug, 한 줄 소개)
+DOC_GROUPS: list[dict] = [
+    {
+        "name": "서비스 소개",
+        "docs": [
+            ("VISION", "NaN-SE가 풀려는 문제와 방향"),
+            ("REPORT", "프로세스에 입각한 개발 보고서 본문"),
+            ("COMPETITIVE", "기존 도구와의 비교"),
+        ],
+    },
+    {
+        "name": "설계",
+        "docs": [
+            ("ARCHITECTURE", "모듈 구성과 검출·설명 분리 구조"),
+            ("REQUIREMENTS", "페르소나·유스케이스·비기능 요구"),
+            ("INTERFACES", "모듈 간 인터페이스 계약"),
+            ("METRICS", "LCOM4·순환복잡도 검출 지표"),
+            ("LEARNING_CARDS", "학습 카드 생성 규칙"),
+        ],
+    },
+    {
+        "name": "개발 과정",
+        "docs": [
+            ("LECTURE_COVERAGE", "강의 주제 대비 반영 점검"),
+            ("AI_TOOLING", "AI 도구 사용 방식"),
+            ("AI_USAGE", "AI 활용 기록"),
+            ("DISCUSSION_LOG", "주요 의사결정 로그"),
+            ("WBS", "작업 분해와 일정"),
+            ("EV_LOG", "Earned Value 손계산 기록"),
+            ("FUTURE_WORK", "12일 범위 밖 확장 방향"),
+        ],
+    },
+]
+
+_DOCS_DIR = Path(__file__).resolve().parents[2] / "docs"
+_ALLOWED_SLUGS = {
+    slug for group in DOC_GROUPS for slug, _ in group["docs"]
+}
+
+
+def _doc_path(slug: str) -> Path | None:
+    if slug not in _ALLOWED_SLUGS:
+        return None
+    path = _DOCS_DIR / f"{slug}.md"
+    if not path.is_file():
+        return None
+    return path
+
+
+def _doc_title(text: str, fallback: str) -> str:
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("# "):
+            return stripped[2:].strip()
+        if stripped:
+            break
+    return fallback
 
 
 def _card_summary(card: LearningCard) -> dict:
@@ -81,7 +141,7 @@ def _compute_stats(findings: list[dict], cards: list[LearningCard]) -> dict:
 
 
 def create_app(db_path: str | Path | None = None) -> FastAPI:
-    app = FastAPI(title="softgate dashboard API", version="0.1.0")
+    app = FastAPI(title="nanse dashboard API", version="0.1.0")
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
@@ -130,5 +190,40 @@ def create_app(db_path: str | Path | None = None) -> FastAPI:
         if found is None:
             raise HTTPException(status_code=404, detail=f"{card_id} 없음")
         return _card_detail(found)
+
+    @app.get("/api/docs")
+    def docs() -> dict:
+        groups = []
+        for group in DOC_GROUPS:
+            items = []
+            for slug, blurb in group["docs"]:
+                path = _doc_path(slug)
+                if path is None:
+                    continue
+                title = _doc_title(path.read_text(encoding="utf-8"), slug)
+                items.append(
+                    {
+                        "slug": slug,
+                        "title": title,
+                        "blurb": blurb,
+                        "github_url": f"{GITHUB_BASE}/{slug}.md",
+                    }
+                )
+            if items:
+                groups.append({"name": group["name"], "docs": items})
+        return {"groups": groups}
+
+    @app.get("/api/docs/{slug}")
+    def doc(slug: str) -> dict:
+        path = _doc_path(slug)
+        if path is None:
+            raise HTTPException(status_code=404, detail=f"{slug} 문서 없음")
+        text = path.read_text(encoding="utf-8")
+        return {
+            "slug": slug,
+            "title": _doc_title(text, slug),
+            "markdown": text,
+            "github_url": f"{GITHUB_BASE}/{slug}.md",
+        }
 
     return app

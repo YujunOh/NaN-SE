@@ -1,4 +1,4 @@
-"""SRP 위반 예시. softgate analyze로 돌려보기 위한 샘플.
+"""SRP 위반 예시. nanse analyze로 돌려보기 위한 샘플.
 
 AuthService가 인증, 이메일 발송, 토큰 발급, 비밀번호 검증까지 담당한다.
 LCOM4가 1보다 커야 하고 finding이 떠야 한다.

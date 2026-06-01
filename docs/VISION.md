@@ -1,10 +1,10 @@
-# VISION: softgate
+# VISION: NaN-SE
 
 > **피벗 반영(Day 5)**: 위반 검출은 결정론적 메트릭(Metric Analyzer: LCOM4, 순환복잡도)이 하고 LLM은 채점하지 않는다. 아래 옛 "SOLID Judge" 표현은 검출층(Metric Analyzer)으로 정정한다. 경위는 DISCUSSION_LOG.md Day 5.
 
 ## 요약
 
-softgate는 바이브코딩 시대의 TCP. 불안정한 AI 코딩 위에 SW공학 신뢰성을 얹는 검증·제약 프로토콜. AI가 만든 SW공학 위반을 단순 차단하는 게 아니라 학습 카드로 전환해 사용자가 원칙을 자연스럽게 익히게 만든다.
+NaN-SE는 바이브코딩 시대의 TCP. 불안정한 AI 코딩 위에 SW공학 신뢰성을 얹는 검증·제약 프로토콜. AI가 만든 SW공학 위반을 단순 차단하는 게 아니라 학습 카드로 전환해 사용자가 원칙을 자연스럽게 익히게 만든다.
 
 ---
 
@@ -46,7 +46,7 @@ softgate는 바이브코딩 시대의 TCP. 불안정한 AI 코딩 위에 SW공�
 1. **흐름을 막는다** — 바이브코딩 금지·교육·강제. 비현실적이고 효과도 제한적
 2. **흐름 안에 원칙을 끼워넣는다** — SW공학 원칙을 바이브코딩 흐름 그대로에 자연스럽게 끼워서 품질을 보장한다
 
-softgate는 두 번째 길에 베팅한다.
+NaN-SE는 두 번째 길에 베팅한다.
 
 ---
 
@@ -54,16 +54,16 @@ softgate는 두 번째 길에 베팅한다.
 
 TCP는 unreliable한 IP 위에서 reliability를 보장하는 프로토콜이다. 패킷 손실, 순서 뒤바뀜, 중복, 전달 실패 같은 IP의 한계를 handshake, ACK, retransmission, flow control, congestion control로 보완한다.
 
-softgate는 같은 발상을 AI coding 도메인에 적용한다.
+NaN-SE는 같은 발상을 AI coding 도메인에 적용한다.
 
-| 네트워크 개념 | softgate 대응 |
+| 네트워크 개념 | NaN-SE 대응 |
 |---|---|
 | **3-way handshake** | Stage 진입 전 invariant 확인 → AI agent 의도 확인 → Stage 승인 |
 | **Retransmission** | Metric Analyzer 위반 검출 시 학습 카드 재요청. 최대 3회 후 사람이 ruling |
 | **Flow control** | hook 응답 ≤ 500ms. 사용자 작업 속도를 막지 않는 throughput 보장 |
 | **Congestion control** | LLM 설명층 환각으로 인한 무한 루프 방지. 혼잡 임계 시 사람에게 escalate |
 
-IP가 본질적으로 unreliable하지만 TCP 덕분에 사용자가 안심하고 웹브라우저를 여는 것처럼, AI coding agent의 본질적 불안정성에도 softgate를 얹으면 사용자가 결과물을 안심하고 받을 수 있어야 한다는 것이 본 프로젝트의 가설.
+IP가 본질적으로 unreliable하지만 TCP 덕분에 사용자가 안심하고 웹브라우저를 여는 것처럼, AI coding agent의 본질적 불안정성에도 NaN-SE를 얹으면 사용자가 결과물을 안심하고 받을 수 있어야 한다는 것이 본 프로젝트의 가설.
 
 ---
 
@@ -130,16 +130,16 @@ IP가 본질적으로 unreliable하지만 TCP 덕분에 사용자가 안심하�
 > 결제 모듈 만들어줘
 ```
 
-softgate Stage가 감지.
+NaN-SE Stage가 감지.
 
 ```
-[softgate Stage]
+[NaN-SE Stage]
 관련 REQ ID 없이 코드 변경을 시도합니다.
 
 → [A] 자동 생성 / [M] 직접 입력 / [S] 건너뛰기
 ```
 
-`[A]` 선택 시 softgate가 자동으로 골격을 만든다.
+`[A]` 선택 시 NaN-SE가 자동으로 골격을 만든다.
 
 ```
 REQ-005 결제 처리 기능
@@ -166,7 +166,7 @@ class PaymentService:
     def update_inventory(self): ...
 ```
 
-softgate Metric Analyzer가 결정론적으로 검출.
+NaN-SE Metric Analyzer가 결정론적으로 검출.
 
 ```
 LCOM4:     4   (연결 요소 4개 = 책임 분리 신호)
@@ -212,7 +212,7 @@ LCOM4가 임계를 넘으므로 LLM 설명층이 학습 카드 자동 생성.
 사용자가 `[A]` 누르면 카드 안의 재요청 prompt가 Claude Code에 자동 전송된다.
 
 ```
-[softgate → Claude Code]
+[NaN-SE → Claude Code]
 PaymentService를 다음 4개로 분리하세요:
 - PaymentService (process_payment만)
 - EmailNotifier (send_email)
@@ -220,7 +220,7 @@ PaymentService를 다음 4개로 분리하세요:
 - InventoryUpdater (update_inventory)
 ```
 
-Claude Code가 재작성 → softgate가 재채점 → SRP 8/10 통과.
+Claude Code가 재작성 → NaN-SE가 재채점 → SRP 8/10 통과.
 
 ### 5.3 Commit 시점에 Traceability 자동 갱신
 
@@ -228,10 +228,10 @@ Claude Code가 재작성 → softgate가 재채점 → SRP 8/10 통과.
 > git commit -m "결제 모듈 1차 구현 [REQ-005][UC-005]"
 ```
 
-softgate Traceability가 commit 감지하고 매트릭스 갱신.
+NaN-SE Traceability가 commit 감지하고 매트릭스 갱신.
 
 ```
-$ softgate trace
+$ nanse trace
 
 REQ-005 → UC-005 → src/payment.py → tests/test_payment.py   complete
 REQ-004 → UC-004 → src/auth.py    → (없음)                   no_test
@@ -243,9 +243,9 @@ REQ-003 → (없음)  →  -            →  -                       no_uc
 ### 5.4 하루를 마치며 — Progress Dashboard
 
 ```
-$ softgate dashboard
+$ nanse dashboard
 
-╭─ softgate Progress — 2026-05-29 ───────────────────╮
+╭─ NaN-SE Progress — 2026-05-29 ───────────────────╮
 │                                                     │
 │ 학습 카드                                           │
 │   생성: 12장                                        │
@@ -274,15 +274,15 @@ $ softgate dashboard
 
 상세 비교는 [COMPETITIVE.md](./COMPETITIVE.md). 솔직히 정리하면 각 모듈 단독으로는 비슷한 도구가 이미 존재.
 
-- **메트릭 검출 영역**: SonarQube, radon 등 정적 분석 도구. LLM 코드 리뷰(CodeRabbit, Greptile, Qodo 등)도 코멘트를 남김. softgate 차별점은 검출 자체가 아니라 검출→설명→검수 폐루프
+- **메트릭 검출 영역**: SonarQube, radon 등 정적 분석 도구. LLM 코드 리뷰(CodeRabbit, Greptile, Qodo 등)도 코멘트를 남김. NaN-SE 차별점은 검출 자체가 아니라 검출→설명→검수 폐루프
 - **Traceability 영역**: shtracer, traceability-matrices, reqflow, Claude Plugin Hub의 traceability-check
 - **Process gate 영역**: Claude Code Hooks 자체에 27개 이상의 hook events. permission gate, quality gate
 
-softgate의 차별점은 다음에서 온다.
+NaN-SE의 차별점은 다음에서 온다.
 
 1. **3 모듈 결합** — SOLID + Traceability + Stage를 하나의 control plane으로 통합한 도구는 현재 시점에 보이지 않는다
-2. **Hook 통합 지점** — 기존 도구는 대부분 PR 단계 또는 IDE 플러그인. softgate는 Claude Code hook으로 코드 작성 직후 inline 검출·검증
-3. **자동 재요청 prompt 생성** — 기존 LLM 리뷰는 코멘트만 남기고 끝. softgate는 AI agent에 다시 보낼 prompt까지 자동 생성하여 루프 폐쇄
+2. **Hook 통합 지점** — 기존 도구는 대부분 PR 단계 또는 IDE 플러그인. NaN-SE는 Claude Code hook으로 코드 작성 직후 inline 검출·검증
+3. **자동 재요청 prompt 생성** — 기존 LLM 리뷰는 코멘트만 남기고 끝. NaN-SE는 AI agent에 다시 보낼 prompt까지 자동 생성하여 루프 폐쇄
 
 ---
 
@@ -303,7 +303,7 @@ softgate의 차별점은 다음에서 온다.
 
 본 프로젝트는 단순 학교 과제가 아니다. AI 코딩 도구 헤비유저로서 작성자가 매일 마주치는 실제 페인(추측성 추상화, 검증 없는 commit, 디버깅 비용 누적)을 도구화한 시도. 개인 CLAUDE.md에 박아둔 Karpathy 4원칙을 자동화로 옮기는 메타 인지에서 출발했다.
 
-product로서의 softgate가 갖춰야 할 것:
+product로서의 NaN-SE가 갖춰야 할 것:
 
 - **dogfooding 가치**: 작성자가 "이 도구 없으면 불안하다" 수준으로 매일 의존하는 흐름
 - **도입 마찰 최소화**: hook 1개 등록만으로 즉시 작동. 기존 워크플로우 변경 최소

@@ -8,8 +8,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from softgate.metrics.lcom import ClassCohesion
-from softgate.principles import Principle
+from nanse.metrics.lcom import ClassCohesion
+from nanse.principles import Principle
 
 # 임계값. 벤치마크 기반 도출이 원칙이나 초기값은 교과서 기준.
 # LCOM4는 1이 이상적이고 2 이상이면 클래스가 무관한 책임으로 갈라진 신호.

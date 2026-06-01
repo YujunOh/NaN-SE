@@ -8,7 +8,7 @@
 
 ## 1. 후보 비교
 
-| 도구 | 강점 | 약점 | softgate 적합도 |
+| 도구 | 강점 | 약점 | NaN-SE 적합도 |
 |---|---|---|---|
 | **Claude Code (CLI)** | Hook API 공개, Agent SDK, subagent 지원, Max 플랜으로 비용 고정 | 학습 곡선 | ⭕ Hook으로 Stage Gate 구현 직결 |
 | ChatGPT Plus + Cursor | 인기 IDE, 빠른 prototyping | Hook API 제한, subagent 미지원 | △ Stage Gate 강제력 약함 |
@@ -21,7 +21,7 @@
 2. **Subagent**: LLM 설명층(Learning Card)의 카드 생성 호출에 Claude Agent SDK의 Task tool 사용. 별도 인프라 불필요.
 3. **비용 고정**: Max 5x 플랜으로 quota 충분 (12일간). FP Counter·EV Tracker 등 보조 모듈의 LLM 호출도 부담 없음.
 4. **카테고리 정렬**: multi-agent 실행 인프라(LangChain, LangGraph, agent harness 등) 카테고리에 Claude Code가 속함
-5. **dogfooding**: 본인이 매일 사용하는 도구. 12일간 softgate를 softgate로 만드는 메타 검증 가능.
+5. **dogfooding**: 본인이 매일 사용하는 도구. 12일간 NaN-SE를 NaN-SE로 만드는 메타 검증 가능.
 
 ## 3. 단일 선택의 risk와 완충
 
@@ -38,7 +38,7 @@
 본 과제 진행 정책:
 
 - **commit message**는 본인이 직접 작성. AI 자동 생성 commit 금지. `Co-Authored-By: Claude` 같은 자동 부착도 금지 (과제 산출물은 본인 산출물).
-- **AI 출력 채택 기준**: softgate의 결정론적 검출(Metric Analyzer)이 띄운 finding을 *보조 지표*로 사용. 단, 최종 채택 여부는 본인이 결정. finding이 없어도 본인이 "이거 필요 없는 추상화 같은데"라고 판단하면 reject. 메트릭이 못 잡는 위반이 있다는 전제(LECTURE_COVERAGE.md income_tax 예시)가 이 정책의 근거.
+- **AI 출력 채택 기준**: NaN-SE의 결정론적 검출(Metric Analyzer)이 띄운 finding을 *보조 지표*로 사용. 단, 최종 채택 여부는 본인이 결정. finding이 없어도 본인이 "이거 필요 없는 추상화 같은데"라고 판단하면 reject. 메트릭이 못 잡는 위반이 있다는 전제(LECTURE_COVERAGE.md income_tax 예시)가 이 정책의 근거.
 - **Stage Gate 우회**: 본인이 `--force` 우회한 횟수는 EV Log에 마킹. 매일 회고에서 "오늘 왜 우회했나" 1줄로 기록 → 도구 자체의 false positive 패턴 발견용.
 - **AI 사용 로그**: `docs/AI_USAGE.md`에 일별 기록 (Day 2부터). 형식: "오늘 AI가 X 잘못 만들어서 내가 Y로 고쳤다. 다음엔 prompt를 Z로 바꿔보자". 정량 지표 아닌 본인 회고.
 

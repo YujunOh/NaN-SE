@@ -1,9 +1,9 @@
-"""softgate Streamlit UI.
+"""nanse Streamlit UI.
 
-CLI(`softgate.cli`)와 동일한 검출/설명 모듈을 그대로 재사용한다. UI는 입출력만
+CLI(`nanse.cli`)와 동일한 검출/설명 모듈을 그대로 재사용한다. UI는 입출력만
 담당하고 로직은 metrics/learning_card/db 층에 위임한다(계층 분리). 실행:
 
-    streamlit run softgate/ui/app.py
+    streamlit run nanse/ui/app.py
 """
 
 from __future__ import annotations
@@ -14,14 +14,14 @@ from pathlib import Path
 
 import streamlit as st
 
-from softgate.db import Store
-from softgate.learning_card.generator import generate_card
-from softgate.metrics import analyze_source
-from softgate.metrics.complexity import findings_from_complexity
-from softgate.metrics.findings import MetricFinding, findings_from_cohesion
+from nanse.db import Store
+from nanse.learning_card.generator import generate_card
+from nanse.metrics import analyze_source
+from nanse.metrics.complexity import findings_from_complexity
+from nanse.metrics.findings import MetricFinding, findings_from_cohesion
 
 EXAMPLES_DIR = Path(__file__).resolve().parents[2] / "examples"
-UI_DB = Path.home() / ".softgate" / "ui.db"
+UI_DB = Path.home() / ".nanse" / "ui.db"
 
 
 def _collect_findings(source: str) -> list[MetricFinding]:
@@ -35,8 +35,8 @@ def _load_example_source() -> str:
     return ""
 
 
-st.set_page_config(page_title="softgate", layout="wide")
-st.title("softgate")
+st.set_page_config(page_title="nanse", layout="wide")
+st.title("nanse")
 st.caption("검출은 결정론적 메트릭, 설명만 LLM. 바이브코딩 산출물의 SRP·응집도 위반을 학습 카드로.")
 
 with st.sidebar:

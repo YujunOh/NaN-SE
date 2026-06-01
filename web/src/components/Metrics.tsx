@@ -2,7 +2,7 @@ export default function Metrics() {
   return (
     <div className="metrics-page">
       <p className="metrics-intro">
-        softgate의 검출층은 LLM 없이 두 가지 결정론적 지표만 본다. 같은 코드를 넣으면
+        NaN-SE의 검출층은 LLM 없이 두 가지 결정론적 지표만 본다. 같은 코드를 넣으면
         늘 같은 값이 나온다. 점수를 매기는 게 아니라, 값이 임계치를 넘은 곳을 finding으로
         표시하고 그 뒤 설명(학습 카드)을 LLM에 맡긴다.
       </p>
@@ -61,7 +61,7 @@ export default function Metrics() {
           <p>
             McCabe가 1976년 원 논문에서 모듈당 10을 권고했고, 이후 NIST 등 다수 가이드가
             이 값을 그대로 쓴다. 10을 넘으면 테스트·유지보수 난도가 급격히 올라간다는 경험적
-            기준이다. softgate는 McCabe 구현을 재발명하지 않고 radon 라이브러리 값을 그대로
+            기준이다. NaN-SE는 McCabe 구현을 재발명하지 않고 radon 라이브러리 값을 그대로
             쓴다.
           </p>
         </div>

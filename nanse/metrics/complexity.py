@@ -11,8 +11,8 @@ from dataclasses import dataclass
 
 from radon.complexity import cc_visit
 
-from softgate.metrics.findings import MetricFinding
-from softgate.principles import Principle
+from nanse.metrics.findings import MetricFinding
+from nanse.principles import Principle
 
 CYCLOMATIC_THRESHOLD = 10
 

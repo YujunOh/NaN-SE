@@ -2,7 +2,7 @@
 
 LLM 호출은 주입 가능한 함수(complete)로 분리했다. 덕분에 테스트에서
 네트워크 없이 가짜 응답을 넣을 수 있고, 벤더 교체도 이 한 점만 바꾸면 된다.
-(DIP 적용. softgate가 검출하려는 바로 그 원칙을 스스로 지킨다.)
+(DIP 적용. nanse가 검출하려는 바로 그 원칙을 스스로 지킨다.)
 """
 
 from __future__ import annotations
@@ -11,10 +11,10 @@ import hashlib
 from collections.abc import Callable
 from datetime import datetime
 
-from softgate.learning_card.models import LearningCard
-from softgate.learning_card.parser import parse_llm_response
-from softgate.learning_card.prompts import build_prompt
-from softgate.metrics.findings import MetricFinding
+from nanse.learning_card.models import LearningCard
+from nanse.learning_card.parser import parse_llm_response
+from nanse.learning_card.prompts import build_prompt
+from nanse.metrics.findings import MetricFinding
 
 Completion = Callable[[str], str]
 

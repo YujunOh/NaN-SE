@@ -50,6 +50,29 @@ export interface CardDetail extends CardSummary {
   user_feedback: string | null;
 }
 
+export interface DocMeta {
+  slug: string;
+  title: string;
+  blurb: string;
+  github_url: string;
+}
+
+export interface DocGroup {
+  name: string;
+  docs: DocMeta[];
+}
+
+export interface DocList {
+  groups: DocGroup[];
+}
+
+export interface DocDetail {
+  slug: string;
+  title: string;
+  markdown: string;
+  github_url: string;
+}
+
 async function get<T>(path: string): Promise<T> {
   const res = await fetch(`${BASE}${path}`);
   if (!res.ok) throw new Error(`${path}: ${res.status}`);
@@ -61,4 +84,6 @@ export const api = {
   findings: () => get<Finding[]>("/api/findings"),
   cards: (status = "all") => get<CardSummary[]>(`/api/cards?status=${status}`),
   card: (id: string) => get<CardDetail>(`/api/cards/${id}`),
+  docs: () => get<DocList>("/api/docs"),
+  doc: (slug: string) => get<DocDetail>(`/api/docs/${slug}`),
 };

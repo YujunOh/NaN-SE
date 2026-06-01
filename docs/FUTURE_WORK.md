@@ -23,16 +23,16 @@
 현재 Claude Code 단일. Cursor, Codex, opencode 등이 hook API를 표준화하면 통합 가능. 어댑터 패턴으로 다음 구조를 검토 가능:
 
 ```
-[Cursor PreEdit]         → [softgate adapter] → [Stage]
-[Claude Code PreToolUse] → [softgate adapter] → [Stage]
-[opencode]               → [softgate adapter] → [Stage]
+[Cursor PreEdit]         → [nanse adapter] → [Stage]
+[Claude Code PreToolUse] → [nanse adapter] → [Stage]
+[opencode]               → [nanse adapter] → [Stage]
 ```
 
 hook 인터페이스가 벤더별로 다르기 때문에 표준화되지 않으면 어댑터 수가 폭증할 위험이 있는 구조.
 
 ## 4. Production Ready 영역 — 전혀 다른 범위
 
-softgate는 코드 작성 단계의 process gate에 집중. 실제 production-ready 시스템에 필요한 다른 영역은 본 과제 범위 밖이고, 이를 다 다루려면 별도 프로젝트 단위가 필요한 구조.
+NaN-SE는 코드 작성 단계의 process gate에 집중. 실제 production-ready 시스템에 필요한 다른 영역은 본 과제 범위 밖이고, 이를 다 다루려면 별도 프로젝트 단위가 필요한 구조.
 
 - **CI/CD 파이프라인**: 빌드 자동화, 테스트 자동 실행, 배포 자동화 (Jenkins, GitHub Actions, GitLab CI 등)
 - **보안**: 인증/인가, 권한 관리, 시크릿 관리, 침투 테스트, 의존성 취약점 스캔
@@ -41,7 +41,7 @@ softgate는 코드 작성 단계의 process gate에 집중. 실제 production-re
 - **데이터**: 백업, 복구, 마이그레이션, 분산 데이터베이스
 - **법적·사업적**: payments, 본인 인증(개인정보), 약관, SLA, 컴플라이언스
 
-이런 영역들이 빙산의 아래 부분이고 softgate는 빙산의 일각만 다루는 도구. 본 과제 산출물은 production-ready 시스템이 아닌 prototype이라는 점을 정직하게 표기한다. MVP(Minimum Viable Product)는 돈 받고 팔 수 있는 최소 기능 단위라는 의미이므로, 현재 softgate를 MVP라고 부르는 것은 부정확한 표현.
+이런 영역들이 빙산의 아래 부분이고 NaN-SE는 빙산의 일각만 다루는 도구. 본 과제 산출물은 production-ready 시스템이 아닌 prototype이라는 점을 정직하게 표기한다. MVP(Minimum Viable Product)는 돈 받고 팔 수 있는 최소 기능 단위라는 의미이므로, 현재 NaN-SE를 MVP라고 부르는 것은 부정확한 표현.
 
 ## 왜 12일 prototype 밖인가
 

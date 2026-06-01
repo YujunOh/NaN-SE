@@ -1,8 +1,8 @@
-# Architecture: softgate
+# Architecture: NaN-SE
 
 > **피벗 반영(Day 5)**: LLM 채점(SOLID Judge)을 폐기하고 결정론적 검출(Metric Analyzer: LCOM4, 순환복잡도)과 LLM 설명(Learning Card)으로 분리했다. 아래 다이어그램·표의 옛 "SOLID Judge" 노드는 검출층 Metric Analyzer로 읽는다. 검출은 LLM을 쓰지 않으므로 "LLM judge subagent"는 LLM 설명층 호출로 정정한다. 경위는 DISCUSSION_LOG.md Day 5.
 >
-> **구현 범위 (정직 표기)**: 실제 코드(`softgate/`)에 있는 것은 검출(`metrics/`: lcom·complexity·findings) + 설명(`learning_card/`) + 저장(`db/`) + 읽기 API(`api/`) + CLI + 웹 UI다. 아래 1·2절의 5 Stage(SAGA), EV Tracker, FP Counter, Process Log, Choreography 이벤트 버스는 피벗 때 접은 원설계이고 코드로 구현하지 않았다. 이 절들은 설계 사고 기록으로 읽고, 도구 기능으로 오해하지 않도록 한다. 실제 동작 지표 정의는 METRICS.md를 따른다.
+> **구현 범위 (정직 표기)**: 실제 코드(`nanse/`)에 있는 것은 검출(`metrics/`: lcom·complexity·findings) + 설명(`learning_card/`) + 저장(`db/`) + 읽기 API(`api/`) + CLI + 웹 UI다. 아래 1·2절의 5 Stage(SAGA), EV Tracker, FP Counter, Process Log, Choreography 이벤트 버스는 피벗 때 접은 원설계이고 코드로 구현하지 않았다. 이 절들은 설계 사고 기록으로 읽고, 도구 기능으로 오해하지 않도록 한다. 실제 동작 지표 정의는 METRICS.md를 따른다.
 
 ## 0. 한 줄 요약
 
@@ -10,9 +10,9 @@
 
 ## 1. 5 Stage (SAGA 패턴 — 부드러운 적용)
 
-softgate의 5 Stage는 SDLC를 SAGA로 모델링한 결과. 다만 강제 차단이 아니라 **누락 검출 + 자동 제안** 방식으로 적용.
+NaN-SE의 5 Stage는 SDLC를 SAGA로 모델링한 결과. 다만 강제 차단이 아니라 **누락 검출 + 자동 제안** 방식으로 적용.
 
-SAGA 패턴 자체는 1987년 분산 시스템 논문에서 정립된 것이고, 긴 트랜잭션을 잘게 잘라 독립 단위로 수행하면서 단계 간 ordering constraint를 두는 발상이 핵심. softgate는 그 패턴을 SDLC 도메인에 적용하되, 사용자 짜증 유발을 회피하기 위해 보상 트랜잭션을 "자동 rollback"이 아닌 "사용자에게 누락 알림 + 자동 생성 제안"으로 부드럽게 재해석.
+SAGA 패턴 자체는 1987년 분산 시스템 논문에서 정립된 것이고, 긴 트랜잭션을 잘게 잘라 독립 단위로 수행하면서 단계 간 ordering constraint를 두는 발상이 핵심. NaN-SE는 그 패턴을 SDLC 도메인에 적용하되, 사용자 짜증 유발을 회피하기 위해 보상 트랜잭션을 "자동 rollback"이 아닌 "사용자에게 누락 알림 + 자동 생성 제안"으로 부드럽게 재해석.
 
 | Stage | 기대 산출물 | 누락 검출 시 동작 |
 |---|---|---|
@@ -37,7 +37,7 @@ stateDiagram-v2
     Test --> Test: 테스트 누락 시 자동 생성 제안
 ```
 
-기존 SDLC 도구(claude-sdlc, agentic-sdlc, Superpowers 등)는 phase 흐름을 강제. softgate는 정반대로 **부드러운 제안**만 — 사용자 의사결정 우선.
+기존 SDLC 도구(claude-sdlc, agentic-sdlc, Superpowers 등)는 phase 흐름을 강제. NaN-SE는 정반대로 **부드러운 제안**만 — 사용자 의사결정 우선.
 
 ## 2. Choreography vs Orchestration — Hybrid
 
@@ -46,7 +46,7 @@ SOA·마이크로서비스 영역에서 모듈 간 통신 방식은 크게 두 �
 - **Choreography**: 각 모듈이 자율적으로 이벤트 발행·구독. 중앙 조정자 없음. 결합도 낮음. 흐름 추적 어려움
 - **Orchestration**: 중앙 조정자가 모듈 호출 순서 관리. 흐름 명확. 단일 중단점(SPOF) 위험
 
-softgate는 4 핵심 + 3 옵션의 hybrid.
+NaN-SE는 4 핵심 + 3 옵션의 hybrid.
 
 | 모듈 | 통신 방식 | 이유 |
 |---|---|---|
@@ -73,7 +73,7 @@ flowchart TB
         Hook3[UserPromptSubmit]
     end
 
-    subgraph "softgate 핵심"
+    subgraph "NaN-SE 핵심"
         SG[Stage<br/>orchestrator]
         SJ[Metric Analyzer<br/>LCOM4·복잡도]
         LC[Learning Card<br/>Generator]
@@ -83,7 +83,7 @@ flowchart TB
         Bus{이벤트 버스}
     end
 
-    subgraph "softgate 옵션"
+    subgraph "NaN-SE 옵션"
         EV[EV Tracker]
         FP[FP Counter]
         PL[Process Log]
@@ -285,38 +285,38 @@ WAL 모드(`PRAGMA journal_mode=WAL`). hook과 모듈 간 메모리 가시성·�
 ## 6. CLI 명령 체계
 
 ```
-softgate init                              # .softgate/ 생성, SQLite 초기화
-softgate session start                     # 새 세션 시작
-softgate session status                    # 현재 stage·미완 작업 표시
+nanse init                              # .nanse/ 생성, SQLite 초기화
+nanse session start                     # 새 세션 시작
+nanse session status                    # 현재 stage·미완 작업 표시
 
-softgate req add <title> <kind>            # REQ-NNN 부여
-softgate uc add <markdown_file>            # UC-NNN 부여, markdown 파싱
+nanse req add <title> <kind>            # REQ-NNN 부여
+nanse uc add <markdown_file>            # UC-NNN 부여, markdown 파싱
 
-softgate analyze <file>                    # 결정론적 메트릭 검출 (LLM 없음)
-softgate cards                             # 미검수 학습 카드 목록
-softgate cards review <CARD-NNN>           # 카드 검수 (채택/거절)
-softgate cards stats                       # 카드 통계
+nanse analyze <file>                    # 결정론적 메트릭 검출 (LLM 없음)
+nanse cards                             # 미검수 학습 카드 목록
+nanse cards review <CARD-NNN>           # 카드 검수 (채택/거절)
+nanse cards stats                       # 카드 통계
 
-softgate trace                             # 전체 traceability 매트릭스 출력
-softgate trace gaps                        # 누락 항목만 표시
-softgate trace export                      # 매트릭스 markdown export
+nanse trace                             # 전체 traceability 매트릭스 출력
+nanse trace gaps                        # 누락 항목만 표시
+nanse trace export                      # 매트릭스 markdown export
 
-softgate dashboard                         # Progress Dashboard 표시
-softgate dashboard --html                  # HTML 출력
+nanse dashboard                         # Progress Dashboard 표시
+nanse dashboard --html                  # HTML 출력
 
 # 옵션
-softgate ev                                # EV 계산
-softgate fp add <kind> <complexity>        # FP 입력
-softgate process-log                       # ISO 25010 매핑 표시
+nanse ev                                # EV 계산
+nanse fp add <kind> <complexity>        # FP 입력
+nanse process-log                       # ISO 25010 매핑 표시
 ```
 
 ## 7. Application Boundary
 
-SW공학에서 application boundary는 시스템이 다루는 영역과 외부 액터·의존성을 분리하는 경계선. softgate의 경계.
+SW공학에서 application boundary는 시스템이 다루는 영역과 외부 액터·의존성을 분리하는 경계선. NaN-SE의 경계.
 
 ```mermaid
 flowchart LR
-    subgraph "softgate Application Boundary"
+    subgraph "NaN-SE Application Boundary"
         SG[Stage]
         SJ[Metric Analyzer<br/>LCOM4·복잡도]
         LC[Learning Card]
@@ -360,7 +360,7 @@ REQUIREMENTS Section 5의 worst-case와 매핑.
 
 설계하면서 짚어둘 두 가지.
 
-1. **5 Stage가 너무 워터폴 같지 않나** — 애자일은 stage 경계가 흐린 편. softgate가 워터폴을 강제하는 모양새이지만, 실제로는 차단하지 않고 검출·제안만 하므로 사용자가 자유롭게 stage를 오갈 수 있는 구조. 애자일 스프린트 안의 SAGA에 가까운 형태.
+1. **5 Stage가 너무 워터폴 같지 않나** — 애자일은 stage 경계가 흐린 편. NaN-SE가 워터폴을 강제하는 모양새이지만, 실제로는 차단하지 않고 검출·제안만 하므로 사용자가 자유롭게 stage를 오갈 수 있는 구조. 애자일 스프린트 안의 SAGA에 가까운 형태.
 
 2. **choreography 부분이 진짜 choreography인가** — SQLite `events` 테이블 polling으로 시작하는 구조라 엄격한 pub/sub은 아닌 상태. "poor man's choreography" 수준임을 정직하게 적어둠. FUTURE_WORK Section 1에서 진짜 pub/sub 미들웨어로 분리하는 것이 다음 단계.
 

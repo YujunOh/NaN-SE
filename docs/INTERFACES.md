@@ -1,4 +1,4 @@
-# Interfaces — softgate
+# Interfaces — NaN-SE
 
 > 4 핵심 모듈 + 옵션 모듈의 Protocol/dataclass 기반 인터페이스 명세.
 > 구현 단계 진입 전 인터페이스 합의 (통합 단계 risk 완충).
@@ -72,7 +72,7 @@ class MetricFinding:
 class MetricAnalyzer(Protocol):
     """결정적 검출층. LLM 호출 없음. Stage가 Edit/commit 시점에 호출.
 
-    LCOM4는 직접 구현(softgate/metrics/lcom.py), 순환복잡도 등은 radon 통합.
+    LCOM4는 직접 구현(nanse/metrics/lcom.py), 순환복잡도 등은 radon 통합.
     """
     def analyze(self, source: str) -> list[ClassMetrics]: ...
     def findings(self, metrics: list[ClassMetrics]) -> list[MetricFinding]:

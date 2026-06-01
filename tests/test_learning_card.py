@@ -7,12 +7,12 @@ import json
 
 import pytest
 
-from softgate.learning_card import LearningCard
-from softgate.learning_card.generator import generate_card
-from softgate.learning_card.parser import parse_llm_response
-from softgate.metrics import analyze_source
-from softgate.metrics.findings import findings_from_cohesion
-from softgate.principles import Principle
+from nanse.learning_card import LearningCard
+from nanse.learning_card.generator import generate_card
+from nanse.learning_card.parser import parse_llm_response
+from nanse.metrics import analyze_source
+from nanse.metrics.findings import findings_from_cohesion
+from nanse.principles import Principle
 
 
 GOD = """

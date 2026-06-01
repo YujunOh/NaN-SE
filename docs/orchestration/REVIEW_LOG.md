@@ -4,7 +4,7 @@
 
 ## 1차 리뷰
 
-### 백엔드 (softgate/api, store, cli serve)
+### 백엔드 (nanse/api, store, cli serve)
 
 지적과 처리:
 

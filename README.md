@@ -1,8 +1,8 @@
-# softgate
+# NaN-SE
 
 > **바이브코딩 시대의 TCP** — unreliable AI coding 위에 SW공학 reliability를 얹는 부드러운 게이트
 >
-> 차단하지 않는다. 검출하고, 학습 카드로 전환하고, 다시 AI agent에 보낼 prompt까지 자동 생성한다. Claude Code, Cursor, opencode 같은 agent가 *무엇을 만들지* 결정한다면, softgate는 *그 결정과 결과물이 SW공학 원칙을 따르는지* 검증하고 *왜 그래야 하는지*를 사용자에게 자연스럽게 학습시킨다.
+> 차단하지 않는다. 검출하고, 학습 카드로 전환하고, 다시 AI agent에 보낼 prompt까지 자동 생성한다. Claude Code, Cursor, opencode 같은 agent가 *무엇을 만들지* 결정한다면, NaN-SE는 *그 결정과 결과물이 SW공학 원칙을 따르는지* 검증하고 *왜 그래야 하는지*를 사용자에게 자연스럽게 학습시킨다.
 
 전체 비전·배경·로드맵은 [docs/VISION.md](./docs/VISION.md)
 
@@ -45,13 +45,13 @@ AI coding agent를 쓰는 개발 흐름의 흔한 패턴은 이렇다.
 
 기존 도구들(SonarQube, Helicone, LangSmith 등)은 코드 작성 이후의 정적 분석이나 LLM 비용 추적에 집중되어 있고, AI가 코드를 만드는 과정 자체에 SW공학 절차를 끼워넣는 도구는 빈자리로 남아있다.
 
-softgate는 이 빈자리에 들어가는 미들웨어다. AI coding agent를 대체하는 도구가 아니라, agent가 만든 산출물의 SRP·응집도 위반을 결정론적 정적 메트릭(LCOM4·순환복잡도)으로 검출하고, 확정된 위반을 LLM이 학습 카드로 설명해 사용자가 검수하게 한다. 검출과 설명을 분리한 게 핵심이다. 채점은 LLM에 맡기지 않는다.
+NaN-SE는 이 빈자리에 들어가는 미들웨어다. AI coding agent를 대체하는 도구가 아니라, agent가 만든 산출물의 SRP·응집도 위반을 결정론적 정적 메트릭(LCOM4·순환복잡도)으로 검출하고, 확정된 위반을 LLM이 학습 카드로 설명해 사용자가 검수하게 한다. 검출과 설명을 분리한 게 핵심이다. 채점은 LLM에 맡기지 않는다.
 
 ## 핵심 아이디어
 
 긴 트랜잭션을 잘게 잘라 독립적으로 수행한다는 SAGA 패턴을 SDLC에 적용한다. 5단계(요구 → 설계 → 구현 → 테스트 → 배포)를 각각 트랜잭션으로 보고, 단계별 invariant(진입 조건)를 만족해야 다음으로 진행한다. 실패 시 이전 단계로 보상 트랜잭션(rollback) 수행.
 
-분산 시스템 영역에서는 SAGA(1987), choreography vs orchestration, constraint-driven design, idempotency 같은 정합성 보장 기법이 오래 전부터 정립되어 있다. 최근의 AI agent 협업에서 드러나는 문제(상태 일관성·산출물 충돌·중복 작업·잘못된 의사결정 전파)는 새로운 카테고리의 문제가 아니라, 그 옛 패턴들이 다시 등장하는 형태에 가깝다. softgate는 새로운 개념을 발명하기보다, 이미 검증된 분산 시스템 패턴을 AI coding agent 도메인에 가져온 응용 레이어로 위치한다.
+분산 시스템 영역에서는 SAGA(1987), choreography vs orchestration, constraint-driven design, idempotency 같은 정합성 보장 기법이 오래 전부터 정립되어 있다. 최근의 AI agent 협업에서 드러나는 문제(상태 일관성·산출물 충돌·중복 작업·잘못된 의사결정 전파)는 새로운 카테고리의 문제가 아니라, 그 옛 패턴들이 다시 등장하는 형태에 가깝다. NaN-SE는 새로운 개념을 발명하기보다, 이미 검증된 분산 시스템 패턴을 AI coding agent 도메인에 가져온 응용 레이어로 위치한다.
 
 ## 모듈과 구현 범위
 
@@ -74,14 +74,14 @@ Day 5 피벗으로 실제 구현은 검출과 설명 두 모듈에 집중한다.
 
 ## 기존 도구와의 위치
 
-| 도구 | 무대 | softgate와의 관계 |
+| 도구 | 무대 | NaN-SE와의 관계 |
 |---|---|---|
-| Claude Code, GPT (OpenAI), Cursor, Gemini, 자체 LLM | AI coding agent 실행 | softgate가 hook으로 위에 올라가는 구조 |
-| LangChain, LangGraph, 자체 에이전트 프레임워크 | 에이전트 실행 인프라 | softgate는 그 위의 정책 레이어 |
-| SonarQube, ESLint, radon | 정적 분석·메트릭 검출 | 검출 자체는 겹친다. softgate의 차별점은 검출 뒤 LLM 학습 카드·검수·AI 재요청까지 잇는 폐루프 |
-| LangSmith, Helicone | LLM 비용·레이턴시 observability | 측정 대상이 다름. softgate는 SW공학 절차 준수 |
+| Claude Code, GPT (OpenAI), Cursor, Gemini, 자체 LLM | AI coding agent 실행 | NaN-SE가 hook으로 위에 올라가는 구조 |
+| LangChain, LangGraph, 자체 에이전트 프레임워크 | 에이전트 실행 인프라 | NaN-SE는 그 위의 정책 레이어 |
+| SonarQube, ESLint, radon | 정적 분석·메트릭 검출 | 검출 자체는 겹친다. NaN-SE의 차별점은 검출 뒤 LLM 학습 카드·검수·AI 재요청까지 잇는 폐루프 |
+| LangSmith, Helicone | LLM 비용·레이턴시 observability | 측정 대상이 다름. NaN-SE는 SW공학 절차 준수 |
 
-softgate는 하나의 벤더(Claude, GPT, Gemini, 자체 LLM)에 종속되지 않는다. hook 인터페이스만 표준화되면 다른 벤더로도 어댑터를 통해 확장 가능한 구조다.
+NaN-SE는 하나의 벤더(Claude, GPT, Gemini, 자체 LLM)에 종속되지 않는다. hook 인터페이스만 표준화되면 다른 벤더로도 어댑터를 통해 확장 가능한 구조다.
 
 자세한 비교는 [docs/COMPETITIVE.md](./docs/COMPETITIVE.md)
 

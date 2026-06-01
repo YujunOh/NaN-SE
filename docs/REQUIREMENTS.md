@@ -1,4 +1,4 @@
-# Requirements — softgate
+# Requirements — NaN-SE
 
 > Day 1 초안에서 출발. Day 5에 설계 피벗을 반영해 유스케이스와 worst-case를 다시 정리했다.
 >
@@ -13,8 +13,8 @@
 - Claude Code, ChatGPT, Cursor 등 여러 AI 코딩 도구 병행. 작년부터 AI에 대한 의존도가 크게 올라간 상황
 - React/Next.js를 백지에서 짜기 어려운 상황 인식이 페인포인트의 출발점
 - 다른 프로젝트에서 AI가 OAuth provider를 미리 5개 추상화해둬서, 그것을 지우고 단일 Google OAuth로 되돌리느라 반나절 날린 적이 있었음. 추측성 추상화가 실제로 도움 된 적이 거의 없었음
-- 개인 CLAUDE.md에 Karpathy 4원칙(Think Before Coding / Simplicity First / Surgical Changes / Goal-Driven Execution)을 박아둔 이유 자체가 이 페인의 산물. softgate는 그 개인 룰을 자동화로 옮긴 시도
-- softgate를 만든다고 해서 AI 맹신이 사라진다는 보장은 없는 상황. 도구가 인간 판단을 대체하지는 못함. 그래서 모든 모듈은 "검수는 사람"을 전제로 설계 (Section 6)
+- 개인 CLAUDE.md에 Karpathy 4원칙(Think Before Coding / Simplicity First / Surgical Changes / Goal-Driven Execution)을 박아둔 이유 자체가 이 페인의 산물. NaN-SE는 그 개인 룰을 자동화로 옮긴 시도
+- NaN-SE를 만든다고 해서 AI 맹신이 사라진다는 보장은 없는 상황. 도구가 인간 판단을 대체하지는 못함. 그래서 모든 모듈은 "검수는 사람"을 전제로 설계 (Section 6)
 
 ### P2: 주니어 개발자
 - 인턴 ~ 2년차
@@ -27,7 +27,7 @@
 
 ## 2. 페인포인트 (5W1H)
 
-| Who | What | When | Where | Why | How (softgate 대응) |
+| Who | What | When | Where | Why | How (NaN-SE 대응) |
 |---|---|---|---|---|---|
 | 바이브코더 | 요구사항 없이 곧장 구현 진입 | AI 도구 사용 시 | Claude Code/Cursor 세션 | 빠른 결과 욕구 + 도구가 강제 안 함 | Stage Gate(얇은 데모): 요구사항 부재 시 Edit 차단 |
 | 주니어 | AI 출력의 SRP·응집도 위반 미인지 | 코드 리뷰 직전 | 로컬 IDE | 5원칙 수동 검증 부담 | Metric Analyzer(구현): LCOM4·순환복잡도로 결정론적 검출 |
@@ -40,7 +40,7 @@
 
 ### 3.1 목록
 
-실제 구현한 UC-03/04/05가 softgate의 핵심 흐름이다. UC-01/02는 얇은 데모, UC-06은 보고서 설계만 한다.
+실제 구현한 UC-03/04/05가 NaN-SE의 핵심 흐름이다. UC-01/02는 얇은 데모, UC-06은 보고서 설계만 한다.
 
 | ID | 액터 | 시나리오 | 관련 모듈 | 범위 |
 |---|---|---|---|---|
@@ -59,9 +59,9 @@ Mermaid는 정식 `usecaseDiagram` 문법을 지원하지 않아 `flowchart`로 
 flowchart LR
     User((사용자))
     LLM((LLM<br/>설명층))
-    System((softgate<br/>시스템))
+    System((NaN-SE<br/>시스템))
 
-    subgraph softgate
+    subgraph NaN-SE
         UC01([UC-01<br/>요구사항 명시 후 코드 변경])
         UC02([UC-02<br/>요구사항 없이 Edit 호출])
         UC03([UC-03<br/>위반 결정론적 검출])
@@ -163,7 +163,7 @@ sequenceDiagram
     DB-->>SG: (응답 지연, 5초 초과)
     Note over SG: Claude Code timeout
     SG-->>AI: hook 실패로 간주
-    AI->>U: "softgate hook 응답 없음, 정상 진행"
+    AI->>U: "nanse hook 응답 없음, 정상 진행"
     Note over U,DB: 사용자가 모르는 사이 차단 무효화 ⚠️
 ```
 
@@ -208,7 +208,7 @@ sequenceDiagram
 
 검증(Verification)과 확인(Validation)은 결국 사람이 한다는 점이 핵심. 시스템·문서가 맞는지(검증), 그것이 사용자 요구에 타당한지(확인) 둘 다 사람의 판단 영역.
 
-이 원칙을 softgate 모든 모듈의 핵심 설계 기준으로 채택. 도구는 hint를 생성하지만 ruling은 사용자가 한다.
+이 원칙을 NaN-SE 모든 모듈의 핵심 설계 기준으로 채택. 도구는 hint를 생성하지만 ruling은 사용자가 한다.
 
 - **Metric Analyzer / Learning Card**: 검출은 결정론적이지만 위반을 고칠지는 사용자가 정한다. 학습 카드의 교정 예시도 사용자가 채택/거절한다. 카드는 보고용이지 강제용이 아님
 - **Stage**: 차단도 `--force` 우회 가능. 단 우회 시 EV Tracker에 "강제 진행" 마킹되어 회고에 반영

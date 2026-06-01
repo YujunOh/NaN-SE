@@ -6,7 +6,7 @@
 
 from __future__ import annotations
 
-from softgate.metrics.findings import MetricFinding
+from nanse.metrics.findings import MetricFinding
 
 LEARNING_CARD_PROMPT = """당신은 SW공학 원칙을 가르치는 학습 도우미입니다.
 아래는 정적 분석으로 이미 확정된 위반 사실입니다. 채점은 끝났으니 다시 점수를

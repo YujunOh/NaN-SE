@@ -4,7 +4,7 @@
 채점은 이미 끝났다. LLM은 판정하지 않는다.
 """
 
-from softgate.learning_card.models import LearningCard
-from softgate.learning_card.generator import generate_card
+from nanse.learning_card.models import LearningCard
+from nanse.learning_card.generator import generate_card
 
 __all__ = ["LearningCard", "generate_card"]

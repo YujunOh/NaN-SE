@@ -6,7 +6,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
-from softgate.principles import Principle
+from nanse.principles import Principle
 
 
 class LearningCard(BaseModel):

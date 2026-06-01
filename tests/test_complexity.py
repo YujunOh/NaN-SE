@@ -1,7 +1,7 @@
 """순환복잡도 검출 테스트."""
 
-from softgate.metrics.complexity import analyze_complexity, findings_from_complexity
-from softgate.principles import Principle
+from nanse.metrics.complexity import analyze_complexity, findings_from_complexity
+from nanse.principles import Principle
 
 COMPLEX = """
 class Router:

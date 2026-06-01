@@ -8,8 +8,8 @@ import ast
 
 import pytest
 
-from softgate.metrics import analyze_source, compute_lcom4
-from softgate.metrics.lcom import ClassCohesion
+from nanse.metrics import analyze_source, compute_lcom4
+from nanse.metrics.lcom import ClassCohesion
 
 
 COHESIVE = """

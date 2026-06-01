@@ -4,10 +4,10 @@ from datetime import datetime
 
 import pytest
 
-from softgate.db import Store
-from softgate.learning_card.models import LearningCard
-from softgate.metrics.findings import MetricFinding
-from softgate.principles import Principle
+from nanse.db import Store
+from nanse.learning_card.models import LearningCard
+from nanse.metrics.findings import MetricFinding
+from nanse.principles import Principle
 
 
 def _card(card_id: str) -> LearningCard:

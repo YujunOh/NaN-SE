@@ -1,4 +1,4 @@
-"""softgate CLI. Typer + rich. 본인 구현 영역(사용자 검수 인터페이스)."""
+"""nanse CLI. Typer + rich. 본인 구현 영역(사용자 검수 인터페이스)."""
 
 from __future__ import annotations
 
@@ -10,13 +10,13 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from softgate.db import Store
-from softgate.learning_card.generator import generate_card
-from softgate.learning_card.models import LearningCard
-from softgate.metrics import analyze_source
-from softgate.metrics.complexity import findings_from_complexity
-from softgate.metrics.findings import MetricFinding, findings_from_cohesion
-from softgate.principles import Principle
+from nanse.db import Store
+from nanse.learning_card.generator import generate_card
+from nanse.learning_card.models import LearningCard
+from nanse.metrics import analyze_source
+from nanse.metrics.complexity import findings_from_complexity
+from nanse.metrics.findings import MetricFinding, findings_from_cohesion
+from nanse.principles import Principle
 
 app = typer.Typer(help="바이브코딩에 SW공학 프로세스를 끼워넣는 부드러운 게이트")
 console = Console()
@@ -101,7 +101,7 @@ def learn(path: Path, db: Path | None = None) -> None:
             )
             store.save_card(card)
             created.append(card_id)
-    console.print(f"[green]{len(created)}장 저장됨: {', '.join(created)}.[/green] 'softgate review <ID>'로 검수.")
+    console.print(f"[green]{len(created)}장 저장됨: {', '.join(created)}.[/green] 'nanse review <ID>'로 검수.")
 
 
 @app.command()
@@ -250,7 +250,7 @@ def seed_demo(db: Path | None = None) -> None:
             store.save_card(card)
     console.print(
         f"[green]예시 finding·카드 {len(specs)}건 저장됨.[/green] "
-        "'softgate serve'로 대시보드 확인."
+        "'nanse serve'로 대시보드 확인."
     )
 
 
@@ -262,7 +262,7 @@ def serve(
 ) -> None:
     """대시보드용 읽기 API를 띄운다 (FastAPI + uvicorn).
 
-    검출·설명 결과를 읽기만 노출한다. 검수는 'softgate review'에 남는다.
+    검출·설명 결과를 읽기만 노출한다. 검수는 'nanse review'에 남는다.
     """
     try:
         import uvicorn
@@ -272,7 +272,7 @@ def serve(
         )
         raise typer.Exit(1)
 
-    from softgate.api import create_app
+    from nanse.api import create_app
 
     console.print(f"[green]API 기동:[/green] http://{host}:{port}/api/health")
     uvicorn.run(create_app(db), host=host, port=port)

@@ -1,4 +1,4 @@
-# AI Usage Log — softgate
+# AI Usage Log — NaN-SE
 
 본인 회고 일별 기록. 정량 지표가 아닌 메타 인지. 형식 고정:
 - 오늘 AI가 X 잘못 만들어서 / 잘 만들어서 어떻게 했다

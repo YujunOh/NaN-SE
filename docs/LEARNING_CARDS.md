@@ -1,4 +1,4 @@
-# Learning Card System: softgate
+# Learning Card System: NaN-SE
 
 > **피벗 반영(Day 5)**: 위반 검출은 결정론적 메트릭(Metric Analyzer: LCOM4, 순환복잡도)이 하고, LLM은 확정된 finding을 학습 카드로 설명만 한다. 아래 옛 "SOLID Judge" 표현은 검출층(Metric Analyzer)으로 정정한다. 경위는 DISCUSSION_LOG.md Day 5.
 
@@ -12,12 +12,12 @@ Metric Analyzer가 결정론적으로 위반을 검출하면 단순 코멘트로
 
 기존 LLM 기반 코드 리뷰 도구(CodeRabbit, Greptile, Qodo 등)는 위반에 대한 코멘트를 남기는 데서 끝난다. 사용자가 그 코멘트를 읽고, 이해하고, 직접 수정하거나 AI에 다시 지시해야 한다.
 
-softgate는 두 가지를 더한다.
+NaN-SE는 두 가지를 더한다.
 
 1. **위반을 학습 기회로 전환** — 짧은 자연어 설명 + Before/After 코드로 사용자가 즉시 이해
 2. **재요청 prompt 자동 생성** — AI agent에 다시 보낼 수정 지시까지 함께 제공
 
-기술부채와 코드 리뷰를 이해하지 못하는 문제는 결국 개발자가 바이브코딩된 코드를 직접 짠 게 아니고 + 꼼꼼히 리뷰하지도 않아서 누적된다. softgate는 그 단계에 학습 허들을 낮춰서 SW공학 원칙 지키는 것이 지루하거나 귀찮지 않도록 만드는 시도.
+기술부채와 코드 리뷰를 이해하지 못하는 문제는 결국 개발자가 바이브코딩된 코드를 직접 짠 게 아니고 + 꼼꼼히 리뷰하지도 않아서 누적된다. NaN-SE는 그 단계에 학습 허들을 낮춰서 SW공학 원칙 지키는 것이 지루하거나 귀찮지 않도록 만드는 시도.
 
 ## 2. 데이터 모델
 
@@ -164,12 +164,12 @@ flowchart LR
 
 ```bash
 # 미검수 카드 목록
-$ softgate cards
+$ nanse cards
 CARD-005 | SRP 6/10 | src/auth.py | 미검수
 CARD-006 | DIP 4/10 | src/db.py   | 미검수
 
 # 개별 카드 검수
-$ softgate cards review CARD-005
+$ nanse cards review CARD-005
 
 ╭─ CARD-005 | SRP Violation 6/10 ──────────────────────╮
 │                                                       │
@@ -219,15 +219,15 @@ $ softgate cards review CARD-005
 
 | 영역 | 누가 구현 | 코드 위치 |
 |---|---|---|
-| 데이터 모델 (Pydantic) | 본인 | `softgate/learning_card/models.py` |
-| 카드 생성 파이프라인 | 본인 | `softgate/learning_card/generator.py` |
-| LLM prompt 템플릿 | 본인 | `softgate/learning_card/prompts.py` |
+| 데이터 모델 (Pydantic) | 본인 | `nanse/learning_card/models.py` |
+| 카드 생성 파이프라인 | 본인 | `nanse/learning_card/generator.py` |
+| LLM prompt 템플릿 | 본인 | `nanse/learning_card/prompts.py` |
 | **자연어 콘텐츠 생성** | **LLM (Claude Haiku)** | Anthropic API 호출 |
-| 응답 파싱·검증 (Pydantic) | 본인 | `softgate/learning_card/parser.py` |
-| 사용자 검수 인터페이스 (CLI) | 본인 | `softgate/cli/cards.py` |
-| 거절 사유 → prompt 개선 | 본인 | `softgate/learning_card/prompt_optimizer.py` |
-| DB 쿼리·통계 (SQL) | 본인 | `softgate/db/queries.py` |
-| 이벤트 발행 (Progress Dashboard 연동) | 본인 | `softgate/events.py` |
+| 응답 파싱·검증 (Pydantic) | 본인 | `nanse/learning_card/parser.py` |
+| 사용자 검수 인터페이스 (CLI) | 본인 | `nanse/cli/cards.py` |
+| 거절 사유 → prompt 개선 | 본인 | `nanse/learning_card/prompt_optimizer.py` |
+| DB 쿼리·통계 (SQL) | 본인 | `nanse/db/queries.py` |
+| 이벤트 발행 (Progress Dashboard 연동) | 본인 | `nanse/events.py` |
 
 이 명확한 분리가 "AI 생성물 취급" 우려에 대한 답. 보고서·발표에서 본인 구현 영역을 코드로 직접 보여줄 수 있는 구조.
 
