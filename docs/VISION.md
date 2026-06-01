@@ -92,14 +92,12 @@ IP가 본질적으로 unreliable하지만 TCP 덕분에 사용자가 안심하�
 - 강제 게이트 도구와 정반대 메시지 — "부드러움"이 정체성
 - 결정적 가치: 단계 의식 자연스럽게 환기 + 진행 흐름 시각화
 
-### 핵심 3 — Traceability (한국어·과제 양식 특화)
+### 핵심 3 — Traceability (요구 추적 데모)
 
 - REQ-001 ↔ UC-001 ↔ src/code.py ↔ tests/test_code.py 자동 매트릭스
 - commit message 태그 `[REQ-001][UC-001]` 매칭으로 자동 갱신
 - 누락 자동 알림: REQ 매핑 없음 / UC 코드 없음 / 코드 테스트 없음
-- **한국어 commit message + 한국 대학생 과제 양식 first-class** (영어권 traceability 도구와 차별)
-- 교수님 제출 포맷 자동 생성 (일별 진척 보고서, 형상관리 증빙)
-- 결정적 가치: 요구 변경 시 영향 범위 자동 추적 + 한국 대학 워크플로우 정착
+- 결정적 가치: 요구 변경 시 영향 범위 자동 추적
 
 ### 핵심 4 — Progress Dashboard
 
@@ -112,7 +110,7 @@ IP가 본질적으로 unreliable하지만 TCP 덕분에 사용자가 안심하�
 
 ### 옵션 모듈 (선택 사용)
 
-다음 모듈은 정량 지표·학교 과제 키워드 충족용. 핵심 가치는 위 4개에 집중.
+다음 모듈은 정량 지표용. 핵심 가치는 위 4개에 집중.
 
 - **EV Tracker** — PV/EV/SPI/CPI 자동 계산
 - **FP Counter** — IFPUG 표준 FP 자동 산정
@@ -283,10 +281,8 @@ $ softgate dashboard
 softgate의 차별점은 다음에서 온다.
 
 1. **3 모듈 결합** — SOLID + Traceability + Stage를 하나의 control plane으로 통합한 도구는 현재 시점에 보이지 않는다
-2. **Hook 통합 지점** — 기존 도구는 대부분 PR 단계 또는 IDE 플러그인. softgate는 Claude Code hook으로 코드 작성 직후 inline 채점·검증
+2. **Hook 통합 지점** — 기존 도구는 대부분 PR 단계 또는 IDE 플러그인. softgate는 Claude Code hook으로 코드 작성 직후 inline 검출·검증
 3. **자동 재요청 prompt 생성** — 기존 LLM 리뷰는 코멘트만 남기고 끝. softgate는 AI agent에 다시 보낼 prompt까지 자동 생성하여 루프 폐쇄
-
-학교 과제 컨텍스트에서는 "혁신적 아이디어"보다 "어떻게 만들었는가(process)"가 평가 대상. 본인이 직접 구현하면서 SW공학 절차를 적용한 점이 가치.
 
 ---
 

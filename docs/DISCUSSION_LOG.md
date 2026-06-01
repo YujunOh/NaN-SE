@@ -84,9 +84,9 @@ Day 2 6 commit + Day 3 일부 선행 3 commit. PV 12%, EV 추정 18% (선행분 
 
 이름은 softgate로 변경. soft 게이트 = "차단 X, 제안 O" 컨셉 텍스트에 내장. 짧고 기억 쉽고 충돌 확률 낮음.
 
-scope는 6 모듈에서 3 핵심으로 축소 + 깊이 강화. SOLID Judge·Traceability·Stage에 집중. EV/FP/Process Log는 옵션으로 강등(학교 과제 키워드 충족용).
+scope는 6 모듈에서 3 핵심으로 축소 + 깊이 강화. SOLID Judge·Traceability·Stage에 집중. EV/FP/Process Log는 옵션으로 미룬다.
 
-Traceability는 한국어 commit message + 한국 대학생 과제 양식 first-class로 차별. 영어권 traceability-check이 못 다루는 영역.
+Traceability는 REQ ↔ UC ↔ code ↔ test 매핑을 commit message 태그로 자동 갱신하는 데모로 둔다.
 
 ### 추가 발상 — 위반을 학습 기회로
 
@@ -100,7 +100,7 @@ scope 폭발 우려가 있어서 한 가지 원칙을 박았다. 학습 카드 �
 
 1. SOLID Judge + Learning Card Generator
 2. Stage (누락 검출 + 자동 제안, 차단 X)
-3. Traceability (한국어·과제 양식 특화)
+3. Traceability (요구 추적 데모)
 4. Progress Dashboard (성취감 유발)
 
 옵션 모듈로 EV Tracker / FP Counter / Process Log 유지.
@@ -145,7 +145,7 @@ SOLID별로 기계화 가능성을 정직하게 갈랐다. SRP·DIP·결합도·
 
 각 조각이 이미 시판품이 있는지 확인했다. 메트릭 계산은 cohesion, lcom, radon, lizard, PyExamine 등으로 완전히 존재했고, AI가 커밋 리뷰하며 설명하는 것도 여럿 있었다. 신제품은 아니라는 뜻.
 
-하지만 이건 감점 사유가 아니라는 판단. 과제는 SW 자유 선정이고 채점은 프로세스다. 그래서 올바른 SW공학적 판단은 "있는 걸 다시 짜지 말고 가져다 쓰는 것"이라고 결정했다. radon 같은 건 의존성으로 넣고, 원본 작업은 그 위의 조합(메트릭 트리거에서 학습 카드, AI 재요청 prompt 폐쇄 루프, 한국어 과제 양식)에 집중. McCabe 복잡도를 직접 재발명할 이유는 없다.
+하지만 이건 감점 사유가 아니라는 판단. 과제는 SW 자유 선정이고 채점은 프로세스다. 그래서 올바른 SW공학적 판단은 "있는 걸 다시 짜지 말고 가져다 쓰는 것"이라고 결정했다. radon 같은 건 의존성으로 넣고, 원본 작업은 그 위의 조합(메트릭 트리거에서 학습 카드, AI 재요청 prompt 폐쇄 루프)에 집중. McCabe 복잡도를 직접 재발명할 이유는 없다.
 
 다만 LCOM4 하나는 직접 구현하기로 했다. SRP의 핵심 proxy이고, 본인 구현 영역을 코드로 보여주기 좋고, 난이도도 학부 알고리즘 수준이라 하루면 된다.
 

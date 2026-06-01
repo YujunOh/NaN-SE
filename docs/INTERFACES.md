@@ -146,7 +146,7 @@ class Stage(Protocol):
     def transition(self, to_stage: StageName) -> bool: ...
 ```
 
-## 4. 핵심 3 — Traceability (한국어/과제 양식 특화)
+## 4. 핵심 3 — Traceability (요구 추적 데모)
 
 ```python
 @dataclass
@@ -170,18 +170,18 @@ class UseCase:
 
 
 class Traceability(Protocol):
-    """commit message 태그 매칭으로 자동 갱신. 한국어 commit 패턴 first-class."""
+    """commit message 태그 매칭으로 자동 갱신."""
     def add_requirement(self, req_id: str, title: str, ac: list[str]) -> None: ...
     def add_usecase(self, markdown: str) -> UseCase: ...
-    def parse_korean_commit(self, message: str) -> dict:
-        """한국어 commit message에서 [REQ-001][UC-001] 태그 추출."""
+    def parse_commit_tags(self, message: str) -> dict:
+        """commit message에서 [REQ-001][UC-001] 태그 추출."""
         ...
     def matrix(self) -> list[TraceabilityRow]: ...
     def gaps(self) -> list[TraceabilityRow]:
         """gap_type != 'complete'인 행만 반환."""
         ...
-    def export_korean_assignment_format(self) -> str:
-        """한국 대학 과제 양식(일별 진척 보고서, 형상관리 증빙)으로 export."""
+    def export_matrix(self) -> str:
+        """traceability 매트릭스를 markdown으로 export."""
         ...
 ```
 

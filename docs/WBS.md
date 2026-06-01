@@ -49,12 +49,12 @@ Day:  1    2    3    4    5    6    7    8    9    10   11   12
 - Day 6: Learning Card Generator — 카드 모델, 생성 파이프라인, prompt 템플릿, SQLite 저장, learn CLI (완료)
 - Day 7: 카드 검수 CLI(rich) + 채택 시 재요청 prompt 확보 (완료)
 
-### Track 2 — Traceability (한국어/과제 양식, Day 4-7)
+### Track 2 — Traceability (요구 추적 데모, Day 4-7)
 
-- Day 4: Markdown 파서 (REQ, UC, acceptance criteria). 한국어 양식 우선
-- Day 5: Mermaid 다이어그램 자동 생성 + 한국어 commit message 태그 파서
+- Day 4: Markdown 파서 (REQ, UC, acceptance criteria)
+- Day 5: Mermaid 다이어그램 자동 생성 + commit message 태그 파서
 - Day 6: SQLite traceability 테이블 + CRUD + gap 검출
-- Day 7: 한국 대학 과제 양식 export (일별 진척 보고서, 형상관리 증빙)
+- Day 7: traceability 매트릭스 markdown export
 
 ### Track 3 — Progress Dashboard (Day 4-7)
 
@@ -65,7 +65,7 @@ Day:  1    2    3    4    5    6    7    8    9    10   11   12
 
 ### Track 4 — 옵션 모듈 (EV / FP / Process Log, Day 4-7)
 
-학교 과제 키워드 충족용. 핵심 4 모듈 완성 후 시간 남으면 진행. scope 폭발 시 일부 생략 가능.
+정량 지표 보조용. 핵심 4 모듈 완성 후 시간 남으면 진행. scope 폭발 시 일부 생략 가능.
 
 - Day 4-5: FP Counter — IFPUG 가중치 표 코드화, CLI 입력
 - Day 5-6: EV Tracker — WBS 파서, commit 진척 측정, SPI/CPI 산출

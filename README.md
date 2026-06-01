@@ -69,7 +69,7 @@ Day 5 피벗으로 실제 구현은 검출과 설명 두 모듈에 집중한다.
 | 모듈 | 범위 |
 |---|---|
 | Stage | 얇은 데모. SDLC 5단계 누락 검출 + 제안, 차단하지 않음 |
-| Traceability | 얇은 데모. REQ ↔ UC ↔ code ↔ test 매핑, 한국어 과제 양식 |
+| Traceability | 얇은 데모. REQ ↔ UC ↔ code ↔ test 매핑 |
 | EV Tracker / FP Counter / Process Log | 보고서 설계만. EV(PMBOK)·FP(IFPUG)·ISO 25010 매핑 |
 
 ## 기존 도구와의 위치

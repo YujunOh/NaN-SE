@@ -288,7 +288,7 @@ softgate session start                     # 새 세션 시작
 softgate session status                    # 현재 stage·미완 작업 표시
 
 softgate req add <title> <kind>            # REQ-NNN 부여
-softgate uc add <markdown_file>            # UC-NNN 부여, 한국어 양식 파싱
+softgate uc add <markdown_file>            # UC-NNN 부여, markdown 파싱
 
 softgate analyze <file>                    # 결정론적 메트릭 검출 (LLM 없음)
 softgate cards                             # 미검수 학습 카드 목록
@@ -297,7 +297,7 @@ softgate cards stats                       # 카드 통계
 
 softgate trace                             # 전체 traceability 매트릭스 출력
 softgate trace gaps                        # 누락 항목만 표시
-softgate trace export                      # 한국 대학 과제 양식으로 export
+softgate trace export                      # 매트릭스 markdown export
 
 softgate dashboard                         # Progress Dashboard 표시
 softgate dashboard --html                  # HTML 출력
@@ -352,7 +352,7 @@ REQUIREMENTS Section 5의 worst-case와 매핑.
 | WC-04: SQLite 손상 | 전체 | 매일 VACUUM + `.bak` dump |
 | WC-05: FP invalid 입력 | FP Counter | Pydantic validation |
 | WC-NEW: 학습 카드 환각 콘텐츠 | Learning Card | 사용자 검수 필수. 거절 시 사유 기록 → 다음 prompt 개선 |
-| WC-NEW: 한국어 commit 파싱 실패 | Traceability | 한국어/영어 혼용 commit 패턴 정의 + fallback regex |
+| WC-NEW: commit 태그 파싱 실패 | Traceability | 태그 패턴 정의 + fallback regex |
 
 ## 9. 설계 메모
 
