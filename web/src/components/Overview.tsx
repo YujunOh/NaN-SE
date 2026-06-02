@@ -36,8 +36,8 @@ export default function Overview({
 }) {
   const { data, error, loading } = useFetch(() => api.stats());
 
-  if (loading) return <p className="muted">불러오는 중...</p>;
-  if (error) return <p className="error">API 연결 실패: {error}</p>;
+  if (loading) return <p className="muted">불러오는 중입니다...</p>;
+  if (error) return <p className="error">API 연결에 실패했습니다: {error}</p>;
   if (!data) return null;
 
   const rate =
@@ -58,7 +58,7 @@ export default function Overview({
         <section className="panel">
           <div className="panel-head">
             <h3>원칙별 finding</h3>
-            <span className="muted small">막대 클릭 → 해당 원칙 Findings</span>
+            <span className="muted small">막대를 누르면 해당 원칙의 Findings로 이동합니다</span>
           </div>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={data.by_principle}>

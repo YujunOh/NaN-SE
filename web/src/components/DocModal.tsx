@@ -35,7 +35,7 @@ export default function DocModal({
         <button className="modal-close" onClick={onClose}>
           ✕
         </button>
-        {loading && <p className="muted">불러오는 중...</p>}
+        {loading && <p className="muted">불러오는 중입니다...</p>}
         {error && <p className="error">{error}</p>}
         {data && (
           <>

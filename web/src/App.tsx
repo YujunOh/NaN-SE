@@ -58,7 +58,7 @@ export default function App() {
       </main>
 
       <footer className="foot muted small">
-        검출은 결정론적 메트릭, 설명은 LLM. 검수(채택/거절)는 CLI(nanse review)에서.
+        검출은 결정론적 메트릭으로 하고, 설명은 LLM이 맡습니다. 검수(채택과 거절)는 CLI(nanse review)에서 합니다.
       </footer>
     </div>
   );

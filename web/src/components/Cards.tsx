@@ -38,7 +38,7 @@ function CardModal({ id, onClose }: { id: string; onClose: () => void }) {
         <button className="modal-close" onClick={onClose}>
           ✕
         </button>
-        {loading && <p className="muted">불러오는 중...</p>}
+        {loading && <p className="muted">불러오는 중입니다...</p>}
         {error && <p className="error">{error}</p>}
         {data && (
           <>
@@ -108,8 +108,8 @@ export default function Cards() {
       </div>
 
       {loading && <p className="muted">불러오는 중...</p>}
-      {error && <p className="error">API 연결 실패: {error}</p>}
-      {data && data.length === 0 && <p className="muted">해당 카드가 없다.</p>}
+      {error && <p className="error">API 연결에 실패했습니다: {error}</p>}
+      {data && data.length === 0 && <p className="muted">해당 카드가 없습니다.</p>}
 
       <div className="card-grid">
         {data?.map((c) => (

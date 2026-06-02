@@ -25,7 +25,7 @@ export default function LocChip({
     <button
       className="loc-chip mono"
       onClick={copy}
-      title="클릭하면 경로:라인 복사"
+      title="누르면 경로와 라인을 복사합니다"
     >
       {copied ? "복사됨" : label}
     </button>
