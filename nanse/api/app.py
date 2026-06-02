@@ -14,7 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from nanse.db import Store
 from nanse.learning_card.models import LearningCard
 
-GITHUB_BASE = "https://github.com/YujunOh/nanse/blob/main/docs"
+GITHUB_BASE = "https://github.com/YujunOh/NaN-SE/blob/main/docs"
 
 # 첫 화면에서 바로 보여줄 문서 묶음. (slug, 한 줄 소개)
 DOC_GROUPS: list[dict] = [
