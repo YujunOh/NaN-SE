@@ -62,6 +62,10 @@ Stage가 "최소 orchestration" 역할, 나머지는 choreography. 중앙 조정
 
 ## 3. 모듈 구조 다이어그램
 
+### 3.1 원설계 전체 (대부분 설계만)
+
+아래는 피벗 전에 그린 전체 설계다. Stage, Traceability, Progress Dashboard, EV/FP/Process Log, 이벤트 버스, Claude Code Hook 연동은 구현하지 않았다(0·1·2절 참조). 실제로 동작하는 범위는 3.2에 따로 그린다.
+
 ```mermaid
 flowchart TB
     User((사용자))
@@ -114,7 +118,41 @@ flowchart TB
     PL --> DB
 ```
 
-이벤트 버스는 초기 구현에서 SQLite의 `events` 테이블 polling으로 시작. Future Work에서 publish/subscribe 미들웨어(Redis Streams, NATS 등)로 분리 가능한 구조.
+이벤트 버스는 초기 구현에서 SQLite의 `events` 테이블 polling으로 시작하고, Future Work에서 publish/subscribe 미들웨어(Redis Streams, NATS 등)로 분리할 수 있다.
+
+### 3.2 구현된 것 (as-built)
+
+실제 코드로 동작하는 부분만 추리면 다음과 같다. hook도 이벤트 버스도 Stage도 없다. `nanse` CLI가 검출과 설명을 직접 호출하고, SQLite 두 테이블에 저장하며, 읽기 API가 그 결과를 웹 대시보드에 노출한다.
+
+```mermaid
+flowchart TB
+    User((사용자))
+    Anthropic[Anthropic API<br/>Haiku · 설명만]
+
+    subgraph CLI["nanse CLI"]
+        AN[analyze · 검출]
+        LE[learn · 카드 생성]
+        RV[cards / review · 검수]
+        SV[serve · 읽기 API]
+    end
+
+    subgraph Core["nanse 코어"]
+        MA[Metric Analyzer<br/>LCOM4 · 순환복잡도<br/>LLM 없음]
+        LC[Learning Card<br/>Generator]
+        DB[(SQLite<br/>findings · learning_cards)]
+    end
+
+    Web[웹 대시보드<br/>React]
+
+    User --> AN --> MA
+    MA -->|finding| DB
+    User --> LE --> LC
+    LC -->|content call| Anthropic
+    LC --> DB
+    User --> RV --> DB
+    User --> SV --> DB
+    SV -->|HTTP /api| Web
+```
 
 ## 4. Learning Card 데이터 흐름 (설계 흐름)
 
@@ -202,6 +240,36 @@ CREATE TABLE learning_cards (
 );
 ```
 
+두 테이블의 관계는 단순하다. 하나의 finding이 0개 또는 1개의 학습 카드를 가진다(검출은 항상 일어나지만 설명 카드는 `learn`을 돌려야 생긴다).
+
+```mermaid
+erDiagram
+    findings ||--o| learning_cards : "finding_id"
+    findings {
+        int id PK
+        string class_name
+        string metric "lcom4 | cyclomatic"
+        real value
+        real threshold
+        string principle "SRP | OCP"
+        int severity
+        string source_file
+        int source_line
+    }
+    learning_cards {
+        string id PK
+        int finding_id FK
+        string principle
+        int severity
+        string violation_reason
+        string before_code
+        string after_code
+        string revision_prompt
+        int user_accepted "0 | 1 | NULL"
+        string user_feedback
+    }
+```
+
 ### 5.2 원설계 스키마 (접음, 참고용)
 
 피벗 전 11테이블 설계다. `sessions`, `stages`, `requirements`, `usecases`, `solid_judgments`(LLM 채점), `traceability`, `dashboard_metrics`, `wbs_tasks`, `fp_items`, `transcripts`, `events`로 5 Stage·Traceability·Dashboard·EV/FP·이벤트 버스를 모두 담으려 했다. Day 5 피벗에서 검출·설명 폐루프로 범위를 좁히며 위 2테이블만 남겼다. 전체 원설계는 git 히스토리에 남아 있고, 여기서는 접은 사실만 기록한다.
@@ -232,7 +300,7 @@ nanse ev / fp add / process-log                  # EV / FP / Process Log 옵션
 
 ## 7. Application Boundary
 
-SW공학에서 application boundary는 시스템이 다루는 영역과 외부 액터·의존성을 분리하는 경계선. NaN-SE의 경계.
+SW공학에서 application boundary는 시스템이 다루는 영역과 외부 액터·의존성을 분리하는 경계선이다. 아래는 원설계 기준 경계이고, 실제 구현된 경계(검출·설명·저장·읽기 API·웹)는 3.2의 as-built 다이어그램과 같다.
 
 ```mermaid
 flowchart LR
