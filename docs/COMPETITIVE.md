@@ -2,15 +2,15 @@
 
 ## 한 줄 요약
 
-NaN-SE는 AI coding agent를 **대체하지 않는** 도구. agent가 만든 산출물을 SW공학 절차로 검증하는 control plane 역할
+NaN-SE는 AI coding agent를 **대체하지 않는** 도구. agent가 만든 코드의 응집도·복잡도 위반을 결정론적으로 검출하고 학습 카드로 설명하는 검증 보조 레이어
 
 ## 비교표
 
 | 도구 | 역할 | NaN-SE와의 관계 | 핵심 차이 |
 |---|---|---|---|
-| Claude Code, GPT, Cursor, Gemini, 자체 LLM | AI coding agent (실행) | NaN-SE가 hook으로 위에 얹히는 구조 | 실행 vs 검증 |
+| Claude Code, GPT, Cursor, Gemini, 자체 LLM | AI coding agent (실행) | NaN-SE는 산출물을 검증하는 별도 레이어 (현재 CLI, hook 통합은 설계) | 실행 vs 검증 |
 | **opencode planner** | "무엇을 어떻게 할지" 계획 agent (read-only) | NaN-SE는 그 계획이 요구사항·SOLID·테스트 기준에 맞는지 검증 | "할지" vs "타당한지" |
-| SonarQube, ESLint, radon | 정적 분석 (메트릭 검출) | NaN-SE의 Metric Analyzer 검출 자체는 이들과 겹침. 차별점은 검출 뒤 LLM 설명 카드 생성·검수·AI 재요청 prompt까지 잇는 폐루프 | 검출만 vs 검출→학습→교정 |
+| SonarQube, ESLint, radon | 정적 분석 (메트릭 검출) | NaN-SE의 Metric Analyzer 검출 자체는 이들과 겹침. 차별점은 검출 뒤 LLM 설명 카드를 만들고 사람이 검수하는 흐름 (카드에 AI 재요청 prompt 포함) | 검출만 vs 검출→설명→검수 |
 | Harness.io | CI/CD 배포 자동화 | 다른 단계 (NaN-SE는 PR 이전) | 배포 vs 개발 |
 | LangSmith, Helicone | LLM observability (비용·레이턴시) | 측정 대상 다름. NaN-SE는 SW공학 절차 준수 | 운영 지표 vs 공학 절차 |
 | Devin, Manus | end-to-end autonomous agent | 같이 사용 가능. autonomous agent의 산출물을 NaN-SE가 검수 | 자율 실행 vs 검수 |

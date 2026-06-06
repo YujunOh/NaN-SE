@@ -6,7 +6,7 @@
 
 ## 0. 한 줄 요약
 
-Metric Analyzer가 결정론적으로 위반을 검출하면 단순 코멘트로 끝내지 않고, LLM 설명층이 "왜 위반인지 + 운영 단계 비용 + Before/After + 재요청 prompt"로 구성된 학습 카드를 생성. 사용자가 검수·채택하면 재요청 prompt가 AI agent에 자동 전송되어 폐쇄 루프를 형성한다.
+Metric Analyzer가 결정론적으로 위반을 검출하면 단순 코멘트로 끝내지 않고, LLM 설명층이 "왜 위반인지 + 운영 단계 비용 + Before/After + 재요청 prompt"로 구성된 학습 카드를 생성. 사용자가 카드를 검수해 채택·거절한다. 채택한 카드의 재요청 prompt는 사용자가 AI agent에 직접 붙여넣어 수정을 받는다(자동 전송은 설계 단계 구상이며 구현하지 않았다).
 
 ## 1. 왜 학습 카드인가
 
@@ -20,6 +20,8 @@ NaN-SE는 두 가지를 더한다.
 기술부채와 코드 리뷰를 이해하지 못하는 문제는 결국 개발자가 바이브코딩된 코드를 직접 짠 게 아니고 + 꼼꼼히 리뷰하지도 않아서 누적된다. NaN-SE는 그 단계에 학습 허들을 낮춰서 SW공학 원칙 지키는 것이 지루하거나 귀찮지 않도록 만드는 시도.
 
 ## 2. 데이터 모델
+
+> 아래는 초기 설계 스케치다. 실제 구현 모델은 `nanse/learning_card/models.py`에 있고, 피벗으로 채점을 없앴으므로 `score`·`diff_hash` 대신 `severity`·`code_hash`를 쓰고 `finding_id`로 검출 finding을 참조한다(점수 컬럼 없음).
 
 ```python
 from pydantic import BaseModel, Field
@@ -146,6 +148,8 @@ prompt 자체가 본인이 작성한 자산. 거절 사유 데이터가 누적�
 
 ## 5. 검수 흐름 — "검수는 사람" 정책 실천
 
+> 아래 흐름에서 실제 구현된 구간은 카드 생성 → CLI 표시 → 채택/거절 → 거절 사유 저장이다. "재요청 prompt AI agent에 전송"과 그 이후 재검출 루프는 설계 단계 구상이며 구현하지 않았다. 채택 후에는 사용자가 카드의 prompt를 직접 AI에 붙여넣는다.
+
 ```mermaid
 flowchart LR
     Generate[카드 자동 생성] --> Show[CLI 표시]
@@ -165,13 +169,13 @@ flowchart LR
 ```bash
 # 미검수 카드 목록
 $ nanse cards
-CARD-005 | SRP 6/10 | src/auth.py | 미검수
-CARD-006 | DIP 4/10 | src/db.py   | 미검수
+CARD-005 | SRP | src/auth.py | 미검수
+CARD-006 | OCP | src/db.py   | 미검수
 
 # 개별 카드 검수
-$ nanse cards review CARD-005
+$ nanse review CARD-005
 
-╭─ CARD-005 | SRP Violation 6/10 ──────────────────────╮
+╭─ CARD-005 | SRP Violation (LCOM4=3 > 1) ─────────────╮
 │                                                       │
 │ 위반 이유:                                            │
 │   AuthService 클래스가 인증, 토큰 발급, 이메일 발송,   │
@@ -205,7 +209,7 @@ $ nanse cards review CARD-005
 
 [A]ccept / [R]eject / [S]kip: A
 
-✓ 채택됨. AI agent에 재요청 prompt 자동 전송 중...
+✓ 채택됨. 카드의 재요청 prompt를 복사해 AI agent에 붙여넣어 수정을 받는다.
 ```
 
 거절 시:
@@ -224,12 +228,11 @@ $ nanse cards review CARD-005
 | LLM prompt 템플릿 | 본인 | `nanse/learning_card/prompts.py` |
 | **자연어 콘텐츠 생성** | **LLM (Claude Haiku)** | Anthropic API 호출 |
 | 응답 파싱·검증 (Pydantic) | 본인 | `nanse/learning_card/parser.py` |
-| 사용자 검수 인터페이스 (CLI) | 본인 | `nanse/cli/cards.py` |
-| 거절 사유 → prompt 개선 | 본인 | `nanse/learning_card/prompt_optimizer.py` |
-| DB 쿼리·통계 (SQL) | 본인 | `nanse/db/queries.py` |
-| 이벤트 발행 (Progress Dashboard 연동) | 본인 | `nanse/events.py` |
+| 사용자 검수 인터페이스 (CLI) | 본인 | `nanse/cli/__init__.py` (`cards`·`review`) |
+| DB 저장·조회 | 본인 | `nanse/db/store.py` |
+| 결정론적 검출 (LCOM4·복잡도) | 본인 | `nanse/metrics/` (`lcom.py`·`complexity.py`·`findings.py`) |
 
-이 명확한 분리가 "AI 생성물 취급" 우려에 대한 답. 보고서·발표에서 본인 구현 영역을 코드로 직접 보여줄 수 있는 구조.
+이 명확한 분리가 "AI 생성물 취급" 우려에 대한 답. 보고서·발표에서 본인 구현 영역을 코드로 직접 보여줄 수 있는 구조. (거절 사유 기반 prompt 자동 개선, 이벤트 발행은 설계 단계 구상이며 구현하지 않았다.)
 
 ## 8. 거절 사유 데이터로 prompt 개선 (간단 버전)
 

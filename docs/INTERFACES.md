@@ -1,7 +1,8 @@
 # Interfaces — NaN-SE
 
-> 4 핵심 모듈 + 옵션 모듈의 Protocol/dataclass 기반 인터페이스 명세.
-> 구현 단계 진입 전 인터페이스 합의 (통합 단계 risk 완충).
+> 구현 단계 진입 전에 작성한 Protocol/dataclass 인터페이스 명세다(통합 risk 완충용).
+>
+> **구현 범위 (정직 표기)**: 이 중 실제 코드로 구현한 것은 2절의 Metric Analyzer(검출)와 Learning Card(설명)뿐이고, 실제 시그니처는 `nanse/metrics/`·`nanse/learning_card/`에 있다(아래 명세와 세부가 다를 수 있다. 예: 구현 검출은 lcom4→SRP, cyclomatic→OCP 두 매핑만 쓰고 cbo·wmc·param_max는 계산하지 않는다. `send_revision_to_agent`는 구현하지 않았다). 3~6절(Stage, Traceability, Progress Dashboard, EV/FP/Process Log)과 Event 버스는 피벗 때 접은 설계이고 코드가 없다. 이 문서는 설계 사고 기록으로 읽는다.
 
 ## 0. 왜 Protocol인가
 
@@ -124,7 +125,7 @@ class LearningCardGenerator(Protocol):
         ...
 ```
 
-## 3. 핵심 2 — Stage (누락 검출 + 자동 제안)
+## 3. Stage (누락 검출 + 자동 제안) — 설계만, 코드 없음
 
 ```python
 @dataclass
@@ -146,7 +147,7 @@ class Stage(Protocol):
     def transition(self, to_stage: StageName) -> bool: ...
 ```
 
-## 4. 핵심 3 — Traceability (요구 추적 데모)
+## 4. Traceability (요구 추적) — 설계만, 코드 없음
 
 ```python
 @dataclass
@@ -185,7 +186,7 @@ class Traceability(Protocol):
         ...
 ```
 
-## 5. 핵심 4 — Progress Dashboard
+## 5. Progress Dashboard — 설계만 (웹 대시보드가 일부 대체)
 
 ```python
 @dataclass
@@ -215,7 +216,7 @@ class ProgressDashboard(Protocol):
         ...
 ```
 
-## 6. 옵션 모듈 — EV / FP / Process Log
+## 6. 옵션 모듈 — EV / FP / Process Log — 설계만, 코드 없음
 
 ```python
 # 옵션 1 — FP Counter
