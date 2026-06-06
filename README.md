@@ -2,9 +2,28 @@
 
 > **바이브코딩 시대의 TCP** — unreliable AI coding 위에 SW공학 reliability를 더하다
 
-AI coding agent는 *무엇을 만들지* 정한다. NaN-SE는 그 결과물이 **응집도(SRP)와 순환복잡도** 같은 한정된 설계 원칙을 지키는지 결정론적 정적 메트릭으로 검출하고, 확정된 위반을 학습 카드로 설명해 사용자가 직접 고칠지 판단하게 한다. 검출은 LLM을 쓰지 않아 같은 코드에 항상 같은 결과가 나오고, LLM은 점수를 매기지 않고 설명만 한다.
+### 이름의 뜻
 
-전체 비전·배경·로드맵은 [docs/VISION.md](./docs/VISION.md)
+`NaN`은 부동소수점 연산의 그 **Not a Number**다. 계산이 어딘가 잘못됐을 때 조용히 번져 나가는 값. AI가 빠르게 찍어내는 코드도 돌아가는 듯 보이지만 설계가 어긋난 채 퍼진다는 점에서 같다. 동시에 `NaN-SE`는 **Not a Naive Software Engineer** — 순진하게 짠 코드를 잡아내겠다는 말장난이다. 뒤의 `SE`는 Software Engineering.
+
+AI coding agent는 *무엇을 만들지* 정한다. NaN-SE는 그 결과물이 설계 원칙을 지키는지 결정론적 정적 메트릭으로 검출하고, 확정된 위반을 학습 카드로 설명해 사용자가 직접 고칠지 판단하게 한다. 검출은 LLM을 쓰지 않아 같은 코드에 항상 같은 결과가 나오고, LLM은 점수를 매기지 않고 설명만 한다.
+
+### 왜 SRP와 OCP만 검출하나
+
+의도된 범위 결정이다. **같은 코드에 항상 같은 판정이 나오도록 기계적으로 측정 가능한 위반만** 검출한다. LCOM4는 클래스 응집 결손을 세어 SRP 위반 신호를, 순환복잡도는 분기 폭증을 세어 OCP 위반 신호를 준다. 둘 다 결정론적이다. 반면 LSP·ISP·DIP나 결합도 일부는 기계 판정이 어렵거나 확률적 채점이 필요한데, 그걸 LLM에 맡기면 같은 코드도 매번 다른 점수가 나온다. 신뢰할 수 없다고 보고 검출 대상에서 뺐다. 적게 잡더라도 흔들리지 않는 쪽을 택했다. (근거 연구 "Are We SOLID Yet?", 경위는 [docs/DISCUSSION_LOG.md](./docs/DISCUSSION_LOG.md) Day 5)
+
+### 이 저장소를 읽는 순서
+
+문서가 많지만 다 읽을 필요는 없다. 목적별 진입점만 보면 된다.
+
+| 목적 | 먼저 볼 것 |
+|---|---|
+| 과제 평가 | [docs/REPORT.md](./docs/REPORT.md) — 프로세스 적용 보고서(요구분석→품질관리, lessons learned). 이 README는 도구 사용법이다 |
+| 무엇을 만들었나 빠르게 | 아래 **빠른 시작** + **동작 모습** |
+| 왜 이렇게 설계했나 | [docs/VISION.md](./docs/VISION.md)(배경·컨셉), [docs/DISCUSSION_LOG.md](./docs/DISCUSSION_LOG.md)(일자별 의사결정) |
+| 깊은 설계·구현 | [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md), [docs/REQUIREMENTS.md](./docs/REQUIREMENTS.md), [docs/LEARNING_CARDS.md](./docs/LEARNING_CARDS.md) |
+
+나머지(METRICS·COMPETITIVE·INTERFACES·FUTURE_WORK·LECTURE_COVERAGE·WBS·EV_LOG·AI_USAGE)는 특정 주제를 깊게 볼 때만 참조한다.
 
 ## 빠른 시작
 
@@ -34,10 +53,6 @@ nanse learn examples/auth_service.py     # 위반을 학습 카드로 설명
 nanse cards                              # 미검수 카드 목록
 nanse review CARD-001                    # 카드 한 장을 띄워 채택/거절
 ```
-
-## 한 줄 정의
-
-AI coding agent가 만든 코드에서 응집도·복잡도 위반을 결정론적으로 검출하고, 그 위반을 학습 카드로 설명해 사용자가 검수·채택하게 하는 도구
 
 ## 동작 모습
 
