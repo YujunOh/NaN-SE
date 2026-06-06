@@ -1,14 +1,43 @@
 # NaN-SE
 
-> **바이브코딩 시대의 TCP** — unreliable AI coding 위에 SW공학 reliability를 얹는 부드러운 게이트
->
-> 차단하지 않는다. 검출하고, 학습 카드로 전환하고, 다시 AI agent에 보낼 prompt까지 자동 생성한다. Claude Code, Cursor, opencode 같은 agent가 *무엇을 만들지* 결정한다면, NaN-SE는 *그 결정과 결과물이 SW공학 원칙을 따르는지* 검증하고 *왜 그래야 하는지*를 사용자에게 자연스럽게 학습시킨다.
+> **바이브코딩 시대의 TCP** — unreliable AI coding 위에 SW공학 reliability를 더하다
+
+AI coding agent는 *무엇을 만들지* 정한다. NaN-SE는 그 결과물이 **응집도(SRP)와 순환복잡도** 같은 한정된 설계 원칙을 지키는지 결정론적 정적 메트릭으로 검출하고, 확정된 위반을 학습 카드로 설명해 사용자가 직접 고칠지 판단하게 한다. 검출은 LLM을 쓰지 않아 같은 코드에 항상 같은 결과가 나오고, LLM은 점수를 매기지 않고 설명만 한다.
 
 전체 비전·배경·로드맵은 [docs/VISION.md](./docs/VISION.md)
 
+## 빠른 시작
+
+API 키 없이 검출·검수 흐름을 바로 볼 수 있다. 예시 데이터를 채우고 대시보드를 띄운다.
+
+```bash
+# 1. 설치 (Python 3.11+)
+pip install -e ".[api]"
+
+# 2. 예시 finding·학습 카드 채우기 (API 키 불필요)
+nanse seed-demo
+
+# 3. 읽기 API 서버
+nanse serve                      # http://127.0.0.1:8000
+
+# 4. 대시보드 (다른 터미널에서)
+cd web && npm install && npm run dev   # http://localhost:5173
+```
+
+실제 코드를 분석하려면:
+
+```bash
+nanse analyze examples/auth_service.py   # 결정론적 검출만 (LLM 없음, LCOM4=3 SRP 위반 출력)
+
+export ANTHROPIC_API_KEY=sk-...          # 학습 카드 생성에만 필요
+nanse learn examples/auth_service.py     # 위반을 학습 카드로 설명
+nanse cards                              # 미검수 카드 목록
+nanse review CARD-001                    # 카드 한 장을 띄워 채택/거절
+```
+
 ## 한 줄 정의
 
-AI coding agent가 만든 산출물(요구·설계·코드·테스트)의 SW공학 위반을 자동 검출하고, 위반 자체를 학습 카드로 전환해 사용자가 SW공학 원칙을 자연스럽게 익히게 만드는 부드러운 게이트
+AI coding agent가 만든 코드에서 응집도·복잡도 위반을 결정론적으로 검출하고, 그 위반을 학습 카드로 설명해 사용자가 검수·채택하게 하는 도구
 
 ## 왜 지금 필요한가 — "AI 스파게티"와 "공장 컨베이어벨트"
 
@@ -47,15 +76,18 @@ AI coding agent를 쓰는 개발 흐름의 흔한 패턴은 이렇다.
 
 NaN-SE는 이 빈자리에 들어가는 미들웨어다. AI coding agent를 대체하는 도구가 아니라, agent가 만든 산출물의 SRP·응집도 위반을 결정론적 정적 메트릭(LCOM4·순환복잡도)으로 검출하고, 확정된 위반을 LLM이 학습 카드로 설명해 사용자가 검수하게 한다. 검출과 설명을 분리한 게 핵심이다. 채점은 LLM에 맡기지 않는다.
 
-## 핵심 아이디어
+## 핵심 아이디어 — 검출과 설명을 분리한다
 
-긴 트랜잭션을 잘게 잘라 독립적으로 수행한다는 SAGA 패턴을 SDLC에 적용한다. 5단계(요구 → 설계 → 구현 → 테스트 → 배포)를 각각 트랜잭션으로 보고, 단계별 invariant(진입 조건)를 만족해야 다음으로 진행한다. 실패 시 이전 단계로 보상 트랜잭션(rollback) 수행.
+NaN-SE의 핵심은 위반을 *찾는 일*과 *설명하는 일*을 다른 층으로 나눈 것이다.
 
-분산 시스템 영역에서는 SAGA(1987), choreography vs orchestration, constraint-driven design, idempotency 같은 정합성 보장 기법이 오래 전부터 정립되어 있다. 최근의 AI agent 협업에서 드러나는 문제(상태 일관성·산출물 충돌·중복 작업·잘못된 의사결정 전파)는 새로운 카테고리의 문제가 아니라, 그 옛 패턴들이 다시 등장하는 형태에 가깝다. NaN-SE는 새로운 개념을 발명하기보다, 이미 검증된 분산 시스템 패턴을 AI coding agent 도메인에 가져온 응용 레이어로 위치한다.
+- **검출은 결정론적 정적 메트릭이 한다.** LCOM4(연결 요소 수)로 응집 결손(SRP)을, radon 순환복잡도로 분기 폭증을 측정한다. LLM을 쓰지 않으므로 같은 코드는 항상 같은 결과를 낸다. 평가가 흔들리지 않는다.
+- **설명은 LLM이 한다.** 확정된 위반만 학습 카드로 넘긴다. 카드는 위반 이유, 운영 단계 비용, Before/After 코드, AI에 다시 보낼 수정 prompt를 담는다. 점수는 매기지 않는다.
+
+이 분리가 설계 전체의 기준이다. 처음에는 LLM이 SOLID 위반을 점수로 채점하는 구조였지만, 같은 코드를 같은 프롬프트로 두 번 채점해도 점수가 흔들렸다. 신뢰성 요구를 위반하므로 검출을 결정론적 메트릭으로 옮기고 LLM은 설명만 맡게 했다. 경위는 [docs/DISCUSSION_LOG.md](./docs/DISCUSSION_LOG.md) Day 5.
 
 ## 모듈과 구현 범위
 
-Day 5 피벗으로 실제 구현은 검출과 설명 두 모듈에 집중한다. 나머지는 얇은 데모이거나 보고서 설계 언급이다.
+Day 5 피벗으로 실제 구현은 검출과 설명 두 모듈에 집중한다. 나머지는 설계로만 남겼다(코드 없음).
 
 ### 구현
 
@@ -64,21 +96,23 @@ Day 5 피벗으로 실제 구현은 검출과 설명 두 모듈에 집중한다.
 | **Metric Analyzer** (구현) | AI 생성 코드를 결정론적 정적 메트릭으로 검출. LCOM4 직접 구현으로 SRP·응집도 위반을, radon으로 순환복잡도를 검출. LLM을 쓰지 않아 동일 코드는 항상 동일 결과 |
 | **Learning Card** (구현) | 확정된 위반을 LLM이 학습 카드로 설명 (위반 이유·운영 단계 비용 예시·Before/After 코드·재요청 prompt). 점수는 매기지 않고 설명만. 사용자 검수 후 AI에 다시 전달하는 폐쇄 루프 |
 
-### 얇은 데모 / 보고서 설계만
+### 설계만 (코드 없음)
+
+아래는 초기 구상이고 이번 prototype 범위에서 구현하지 않았다. 보고서·문서에 설계로만 남긴다.
 
 | 모듈 | 범위 |
 |---|---|
-| Stage | 얇은 데모. SDLC 5단계 누락 검출 + 제안, 차단하지 않음 |
-| Traceability | 얇은 데모. REQ ↔ UC ↔ code ↔ test 매핑 |
-| EV Tracker / FP Counter / Process Log | 보고서 설계만. EV(PMBOK)·FP(IFPUG)·ISO 25010 매핑 |
+| Stage | SDLC 5단계 누락 검출 + 제안 (차단하지 않는 방식). 설계만 |
+| Traceability | REQ ↔ UC ↔ code ↔ test 매핑. 설계만 |
+| EV Tracker / FP Counter / Process Log | EV(PMBOK)·FP(IFPUG)·ISO 25010 매핑. 설계만 |
 
 ## 기존 도구와의 위치
 
 | 도구 | 무대 | NaN-SE와의 관계 |
 |---|---|---|
-| Claude Code, GPT (OpenAI), Cursor, Gemini, 자체 LLM | AI coding agent 실행 | NaN-SE가 hook으로 위에 올라가는 구조 |
+| Claude Code, GPT (OpenAI), Cursor, Gemini, 자체 LLM | AI coding agent 실행 | NaN-SE는 agent 산출물을 검증하는 별도 레이어 (현재는 CLI, hook 통합은 설계 방향) |
 | LangChain, LangGraph, 자체 에이전트 프레임워크 | 에이전트 실행 인프라 | NaN-SE는 그 위의 정책 레이어 |
-| SonarQube, ESLint, radon | 정적 분석·메트릭 검출 | 검출 자체는 겹친다. NaN-SE의 차별점은 검출 뒤 LLM 학습 카드·검수·AI 재요청까지 잇는 폐루프 |
+| SonarQube, ESLint, radon | 정적 분석·메트릭 검출 | 검출 자체는 겹친다. NaN-SE의 차별점은 검출 뒤 LLM 학습 카드로 설명하고 사람이 검수하는 흐름 |
 | LangSmith, Helicone | LLM 비용·레이턴시 observability | 측정 대상이 다름. NaN-SE는 SW공학 절차 준수 |
 
 NaN-SE는 하나의 벤더(Claude, GPT, Gemini, 자체 LLM)에 종속되지 않는다. hook 인터페이스만 표준화되면 다른 벤더로도 어댑터를 통해 확장 가능한 구조다.
@@ -101,10 +135,12 @@ NaN-SE는 하나의 벤더(Claude, GPT, Gemini, 자체 LLM)에 종속되지 않�
 - Python 3.11+
 - radon (순환복잡도), 자체 구현 LCOM4 (검출)
 - Anthropic SDK (학습 카드 설명 생성, Haiku)
-- Claude Code Hooks: `PreToolUse`, `Stop`, `UserPromptSubmit`
 - SQLite (finding·학습 카드·검수 상태)
 - CLI: Typer + rich
+- 대시보드: FastAPI + uvicorn (읽기 API), Vite + React + recharts (web)
 - 다이어그램: Mermaid
+
+Claude Code hook 통합(`PreToolUse`, `Stop`, `UserPromptSubmit`)으로 코드 작성 직후 inline 검출하는 구조는 설계 방향이며 이번 범위에서 구현하지 않았다. [docs/FUTURE_WORK.md](./docs/FUTURE_WORK.md)
 
 확장 가능성 (현재 범위 밖): [docs/FUTURE_WORK.md](./docs/FUTURE_WORK.md)
 

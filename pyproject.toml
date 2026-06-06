@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "nanse"
 version = "0.1.0"
-description = "바이브코딩에 SW공학 프로세스를 끼워넣는 부드러운 게이트"
+description = "AI 생성 코드의 응집도·복잡도 위반을 결정론적으로 검출하고 학습 카드로 설명한다"
 requires-python = ">=3.11"
 readme = "README.md"
 dependencies = [
