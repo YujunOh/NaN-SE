@@ -4,7 +4,7 @@
 >
 > **피벗 요약**: 검출은 결정론적 정적 메트릭(LCOM4, 순환복잡도)으로만 하고 LLM은 점수를 매기지 않는다. LLM은 확정된 위반을 학습 카드로 설명만 한다. 채점을 LLM에 맡기면 신뢰할 수 없다는 판단("Are We SOLID Yet?" 결과)에서 나온 결정이다. 자세한 경위는 DISCUSSION_LOG.md Day 5 참조.
 >
-> **구현 범위**: Metric Analyzer(검출)와 Learning Card(설명·검수)를 실제 구현한다. Stage Gate와 Traceability는 얇은 데모로만 둔다. EV/FP/Process Log는 보고서에서 설계만 언급한다.
+> **구현 범위**: Metric Analyzer(검출)와 Learning Card(설명·검수)를 실제 구현한다. Stage와 Traceability는 설계만 하고 코드는 두지 않는다. EV/FP/Process Log도 보고서에서 설계만 언급한다. Stage는 원래부터 차단이 아니라 누락 검출·제안 방식으로 설계했다.
 
 ## 1. 페르소나 (Day 2 확장)
 
@@ -29,7 +29,7 @@
 
 | Who | What | When | Where | Why | How (NaN-SE 대응) |
 |---|---|---|---|---|---|
-| 바이브코더 | 요구사항 없이 곧장 구현 진입 | AI 도구 사용 시 | Claude Code/Cursor 세션 | 빠른 결과 욕구 + 도구가 강제 안 함 | Stage Gate(얇은 데모): 요구사항 부재 시 Edit 차단 |
+| 바이브코더 | 요구사항 없이 곧장 구현 진입 | AI 도구 사용 시 | Claude Code/Cursor 세션 | 빠른 결과 욕구 + 도구가 강제 안 함 | Stage(설계만): 요구사항 누락 검출 + 작성 제안, 차단하지 않음 |
 | 주니어 | AI 출력의 SRP·응집도 위반 미인지 | 코드 리뷰 직전 | 로컬 IDE | 5원칙 수동 검증 부담 | Metric Analyzer(구현): LCOM4·순환복잡도로 결정론적 검출 |
 | 주니어 | 위반은 알아도 왜·어떻게 고칠지 막막 | 검출 직후 | 로컬 IDE | 원칙을 코드에 적용하는 법 미숙 | Learning Card(구현): 확정 위반을 LLM이 설명, 사용자가 검수 |
 | 학습자 | WBS·EV를 별도 관리 | 과제 진행 중 | Notion / 종이 | 도구 분산 | EV Tracker(보고서 설계만): commit 진척으로 자동 계산 |
@@ -40,12 +40,12 @@
 
 ### 3.1 목록
 
-실제 구현한 UC-03/04/05가 NaN-SE의 핵심 흐름이다. UC-01/02는 얇은 데모, UC-06은 보고서 설계만 한다.
+실제 구현한 UC-03/04/05가 NaN-SE의 핵심 흐름이다. UC-01/02는 설계만, UC-06도 설계만 한다.
 
 | ID | 액터 | 시나리오 | 관련 모듈 | 범위 |
 |---|---|---|---|---|
-| UC-01 | 사용자 | 요구사항 명시 후 코드 변경, Stage Gate 통과 | Stage Gate | 얇은 데모 |
-| UC-02 | 사용자 | 요구사항 없이 Edit 호출, 차단 + 가이드 메시지 | Stage Gate | 얇은 데모 |
+| UC-01 | 사용자 | 요구사항 명시 후 코드 변경, Stage가 누락 없음 확인 | Stage | 설계만 |
+| UC-02 | 사용자 | 요구사항 없이 Edit 호출, Stage가 누락 알림 + 작성 제안(차단 안 함) | Stage | 설계만 |
 | UC-03 | 사용자 | AI 출력 코드를 분석, Metric Analyzer가 SRP·응집도 위반을 결정론적으로 검출 | Metric Analyzer | 구현 |
 | UC-04 | 사용자 | 확정된 위반 finding을 Learning Card로 생성, LLM이 이유·비용·교정 예시를 설명 | Learning Card | 구현 |
 | UC-05 | 사용자 | 학습 카드를 검수해 채택/거절, 채택 시 AI에 보낼 재요청 prompt 확보 | Learning Card | 구현 |
@@ -88,7 +88,7 @@ flowchart LR
 
 - **UC-04 〈〈include〉〉 UC-03**: 학습 카드 생성(UC-04)은 결정론적 검출(UC-03)이 만든 확정 finding을 항상 입력으로 받는다. 검출 없이는 설명할 대상이 없다
 - **UC-05 〈〈include〉〉 UC-04**: 검수(UC-05)는 생성된 카드(UC-04)를 항상 전제로 한다
-- **UC-02 〈〈extend〉〉 UC-01**: 요구사항 없이 Edit 호출은 UC-01의 비정상 분기. extend는 "조건부 확장" 관계라 차단 시나리오에 적합
+- **UC-02 〈〈extend〉〉 UC-01**: 요구사항 없이 Edit 호출은 UC-01의 비정상 분기. extend는 "조건부 확장" 관계라 누락 알림·제안 분기에 적합
 
 ### 3.4 액터 경계에서 정리한 점
 
@@ -106,28 +106,26 @@ flowchart LR
 
 각 worst-case를 시퀀스 다이어그램으로 시각화. 보상 트랜잭션(rollback) 설계는 ARCHITECTURE.md에서 SAGA 패턴으로 완성.
 
-### WC-01: 요구사항 부재 + AI가 hook 우회 시도
+### WC-01: 요구사항 부재 + Stage가 변경을 못 보는 경우
 
-가장 가능성 큰 케이스. AI가 `Edit` 외 다른 도구(`Write`, `Bash sed` 등)로 우회 가능.
+(Stage는 설계만 한 모듈이라, 아래는 hook 연동을 가정한 설계 단계 리스크 분석이다.) Stage는 차단하지 않고 누락을 알릴 뿐이라, 위험은 "우회"가 아니라 hook이 변경 자체를 못 봐서 알림 기회를 놓치는 것이다. AI가 `Edit` 대신 `Bash sed` 같은 경로로 파일을 바꾸면 PreToolUse가 안 걸려 검출이 누락된다.
 
 ```mermaid
 sequenceDiagram
     participant U as User
     participant AI as AI Agent
-    participant SG as Stage Gate (PreToolUse hook)
+    participant SG as Stage (PreToolUse hook)
     participant FS as Filesystem
 
     U->>AI: "로그인 기능 만들어줘" (요구사항 없음)
     AI->>SG: Edit 호출
-    SG-->>AI: blocked (요구사항 부재)
-    AI->>SG: Write 호출 (우회 시도)
-    SG-->>AI: blocked (Write도 PreToolUse 등록 필요)
-    AI->>FS: Bash "sed -i ..." (우회 시도)
-    Note over SG,FS: Bash는 다른 hook 등록 안 했으면 통과 ⚠️
+    SG-->>AI: 요구사항 누락 알림 + 작성 제안 (차단 안 함)
+    AI->>FS: Bash "sed -i ..." (Edit 안 거치고 직접 변경)
+    Note over SG,FS: Bash는 hook 미등록 시 Stage가 못 봄 → 검출 누락 ⚠️
     FS-->>AI: 파일 변경됨
 ```
 
-**대응**: Day 3에 `Edit`/`Write`/`MultiEdit`/`NotebookEdit` + `Bash`의 파일 수정 명령(`sed -i`, `>` 리다이렉트 등) 패턴까지 hook 등록. 단 모든 패턴 잡기 불가능 → 보고서에 "한계" 명시.
+**대응(설계)**: `Edit`/`Write`/`MultiEdit`/`NotebookEdit` + `Bash`의 파일 수정 명령(`sed -i`, `>` 리다이렉트 등) 패턴까지 hook을 등록하는 방향. 단 모든 경로를 잡는 건 불가능하므로 보고서에 "한계"로 명시한다.
 
 ### WC-02: LLM 설명층이 잘못된 교정 예시를 생성
 
@@ -164,7 +162,7 @@ sequenceDiagram
     Note over SG: Claude Code timeout
     SG-->>AI: hook 실패로 간주
     AI->>U: "nanse hook 응답 없음, 정상 진행"
-    Note over U,DB: 사용자가 모르는 사이 차단 무효화 ⚠️
+    Note over U,DB: 사용자가 모르는 사이 검출 누락 ⚠️
 ```
 
 **대응**: hook은 ≤ 500ms 보장 (Section 4 비기능 요구사항). SQLite는 동기 쓰기, WAL 모드. 5초 timeout 전에 무조건 응답.
@@ -173,16 +171,15 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant SG as Stage Gate
-    participant UL as UseCase Logger
-    participant PL as Process Log
+    participant MA as Metric Analyzer
+    participant LC as Learning Card
+    participant API as 읽기 API
     participant DB as SQLite (손상)
 
-    SG->>DB: stage 조회
-    DB-->>SG: ERROR (DB corrupted)
-    SG--xUL: 의존성 깨짐
-    SG--xPL: 의존성 깨짐
-    Note over SG,DB: 4개 모듈 동시 실패 — 보안·무결성 위협 ⚠️
+    LC->>DB: 학습 카드 저장
+    DB-->>LC: ERROR (DB corrupted)
+    API--xDB: 대시보드 조회 실패
+    Note over MA,DB: 카드 저장·검수·대시보드가 동시에 막힘 ⚠️
 ```
 
 **대응**: 백업 모드. 매일 SQLite VACUUM + dump → `.bak`. 손상 감지 시 자동 복구.
@@ -211,7 +208,7 @@ sequenceDiagram
 이 원칙을 NaN-SE 모든 모듈의 핵심 설계 기준으로 채택. 도구는 hint를 생성하지만 ruling은 사용자가 한다.
 
 - **Metric Analyzer / Learning Card**: 검출은 결정론적이지만 위반을 고칠지는 사용자가 정한다. 학습 카드의 교정 예시도 사용자가 채택/거절한다. 카드는 보고용이지 강제용이 아님
-- **Stage**: 차단도 `--force` 우회 가능. 단 우회 시 EV Tracker에 "강제 진행" 마킹되어 회고에 반영
+- **Stage**: 차단하지 않고 누락 알림·제안만. 제안을 받아들일지는 사용자가 정한다
 - **Process Log**: 분류 결과는 통계용. 사용자가 분류 오류 발견 시 수동 재분류 가능
 - **FP Counter / EV Tracker**: 자동 계산이지만 가중치·일정은 사용자가 직접 입력
 
