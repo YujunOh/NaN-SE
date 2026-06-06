@@ -6,7 +6,7 @@
 
 ## 0. 한 줄 요약
 
-구현된 것: 핵심 폐루프(Metric Analyzer 검출 + Learning Card 설명) + SQLite 단일 store + 읽기 API + 웹 대시보드 + Claude Code Hook 통합. 설계로만 남은 것: 5 Stage, Traceability, Progress Dashboard 모듈, EV/FP/Process Log.
+구현된 것: 핵심 폐루프(Metric Analyzer 검출 + Learning Card 설명) + SQLite 단일 store(findings·learning_cards 2테이블) + 읽기 API + 웹 대시보드 + CLI. 설계로만 남은 것: Claude Code Hook 통합, 5 Stage, Traceability, Progress Dashboard 모듈, EV/FP/Process Log.
 
 ## 1. 5 Stage (SAGA 패턴 — 부드러운 적용)
 
@@ -116,7 +116,9 @@ flowchart TB
 
 이벤트 버스는 초기 구현에서 SQLite의 `events` 테이블 polling으로 시작. Future Work에서 publish/subscribe 미들웨어(Redis Streams, NATS 등)로 분리 가능한 구조.
 
-## 4. Learning Card 데이터 흐름 (핵심 차별점)
+## 4. Learning Card 데이터 흐름 (설계 흐름)
+
+> 아래 다이어그램은 hook으로 코드 작성에 inline으로 붙는 원설계 흐름이다. 실제 구현에서 hook 연동과 "채택 시 AI에 자동 전송"은 없다. 사용자가 `nanse analyze`로 검출하고 `nanse learn`으로 카드를 만들고 `nanse review`로 채택·거절하는 CLI 흐름으로 동작하며, 카드의 `revision_prompt`는 사용자가 직접 AI에 붙여넣는다. 검출(Metric Analyzer)이 LLM 없이 결정론적으로 도는 부분은 실제와 같다.
 
 ```mermaid
 sequenceDiagram
@@ -159,155 +161,73 @@ LLM은 자연어 콘텐츠만 채우고, 데이터 모델·파이프라인·검�
 
 ## 5. SQLite 스키마
 
+### 5.1 실제 구현 스키마 (`nanse/db/store.py`)
+
+피벗 후 store는 두 테이블로 단순화됐다. 검출 결과(`findings`)와 그 위반을 설명한 학습 카드(`learning_cards`)이고, 카드는 `finding_id`로 finding을 참조한다. LLM 채점 구조(`solid_judgments`)는 폐기됐으므로 점수 컬럼이 없다.
+
 ```sql
-CREATE TABLE sessions (
-    id TEXT PRIMARY KEY,
-    project_path TEXT NOT NULL,
-    started_at TIMESTAMP NOT NULL,
-    ended_at TIMESTAMP
+CREATE TABLE findings (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id  TEXT NOT NULL,
+    class_name  TEXT NOT NULL,
+    metric      TEXT NOT NULL,        -- 'lcom4' | 'cyclomatic'
+    value       REAL NOT NULL,
+    threshold   REAL NOT NULL,
+    principle   TEXT NOT NULL,        -- 'SRP' | 'OCP'
+    severity    INTEGER NOT NULL,
+    source_file TEXT,
+    source_line INTEGER,
+    created_at  TEXT NOT NULL
 );
 
-CREATE TABLE stages (
-    id INTEGER PRIMARY KEY,
-    session_id TEXT REFERENCES sessions(id),
-    stage_name TEXT CHECK(stage_name IN ('Requirement','Design','Dev','Test','Deploy')),
-    entered_at TIMESTAMP NOT NULL,
-    missing_artifacts TEXT,
-    suggestions_made TEXT
-);
-
-CREATE TABLE requirements (
-    id TEXT PRIMARY KEY,
-    session_id TEXT REFERENCES sessions(id),
-    title TEXT NOT NULL,
-    kind TEXT CHECK(kind IN ('functional','non_functional')),
-    acceptance_criteria TEXT
-);
-
-CREATE TABLE usecases (
-    id TEXT PRIMARY KEY,
-    session_id TEXT REFERENCES sessions(id),
-    req_ids TEXT,
-    actor TEXT NOT NULL,
-    scenario TEXT NOT NULL,
-    mermaid TEXT,
-    include_uc_ids TEXT
-);
-
-CREATE TABLE solid_judgments (
-    id INTEGER PRIMARY KEY,
-    session_id TEXT REFERENCES sessions(id),
-    diff_hash TEXT NOT NULL,
-    srp_score INTEGER, ocp_score INTEGER, lsp_score INTEGER,
-    isp_score INTEGER, dip_score INTEGER,
-    cohesion_score INTEGER, coupling_score INTEGER,
-    judged_at TIMESTAMP
-);
-
--- 학습 카드 (핵심 차별점)
 CREATE TABLE learning_cards (
-    id TEXT PRIMARY KEY,
-    session_id TEXT REFERENCES sessions(id),
-    judgment_id INTEGER REFERENCES solid_judgments(id),
-    principle TEXT NOT NULL,
-    score INTEGER NOT NULL,
-    violation_reason TEXT,
-    cost_example TEXT,
-    before_code TEXT,
-    after_code TEXT,
-    learning_points TEXT,
-    revision_prompt TEXT,
-    generated_at TIMESTAMP NOT NULL,
-    user_accepted INTEGER,  -- 0=거절, 1=채택, NULL=미검수
-    user_feedback TEXT,
-    reviewed_at TIMESTAMP
-);
-
-CREATE TABLE traceability (
-    id INTEGER PRIMARY KEY,
-    req_id TEXT REFERENCES requirements(id),
-    uc_id TEXT REFERENCES usecases(id),
-    code_path TEXT,
-    test_path TEXT,
-    last_updated TIMESTAMP,
-    gap_type TEXT  -- 'no_uc' | 'no_code' | 'no_test' | 'complete'
-);
-
-CREATE TABLE dashboard_metrics (
-    id INTEGER PRIMARY KEY,
-    session_id TEXT REFERENCES sessions(id),
-    measured_at TIMESTAMP NOT NULL,
-    cards_total INTEGER,
-    cards_accepted INTEGER,
-    solid_pass_rate REAL,
-    streak_days INTEGER,
-    principle_distribution TEXT
-);
-
--- 옵션
-CREATE TABLE wbs_tasks (
-    id TEXT PRIMARY KEY,
-    session_id TEXT REFERENCES sessions(id),
-    title TEXT NOT NULL,
-    planned_value REAL,
-    earned_value REAL DEFAULT 0,
-    actual_cost REAL DEFAULT 0
-);
-
-CREATE TABLE fp_items (
-    id INTEGER PRIMARY KEY,
-    session_id TEXT REFERENCES sessions(id),
-    kind TEXT CHECK(kind IN ('EI','EO','EQ','ILF','EIF')),
-    complexity TEXT CHECK(complexity IN ('low','avg','high')),
-    weight REAL NOT NULL
-);
-
-CREATE TABLE transcripts (
-    id INTEGER PRIMARY KEY,
-    session_id TEXT REFERENCES sessions(id),
-    captured_at TIMESTAMP,
-    stage_classified TEXT,
-    iso25010_dimension TEXT
-);
-
-CREATE TABLE events (
-    id INTEGER PRIMARY KEY,
-    session_id TEXT REFERENCES sessions(id),
-    event_type TEXT NOT NULL,
-    payload TEXT,
-    published_at TIMESTAMP,
-    consumed_by TEXT
+    id               TEXT PRIMARY KEY,
+    session_id       TEXT NOT NULL,
+    finding_id       INTEGER NOT NULL,   -- findings(id) 참조
+    principle        TEXT NOT NULL,
+    severity         INTEGER NOT NULL,
+    code_hash        TEXT NOT NULL,
+    violation_reason TEXT NOT NULL,
+    cost_example     TEXT NOT NULL,
+    before_code      TEXT NOT NULL,
+    after_code       TEXT NOT NULL,
+    learning_points  TEXT NOT NULL,
+    revision_prompt  TEXT NOT NULL,
+    user_accepted    INTEGER,           -- 0=거절, 1=채택, NULL=미검수
+    user_feedback    TEXT,
+    source_file      TEXT,
+    source_line      INTEGER,
+    generated_at     TEXT NOT NULL,
+    reviewed_at      TEXT
 );
 ```
 
-WAL 모드(`PRAGMA journal_mode=WAL`). hook과 모듈 간 메모리 가시성·일관성 보장.
+### 5.2 원설계 스키마 (접음, 참고용)
+
+피벗 전 11테이블 설계다. `sessions`, `stages`, `requirements`, `usecases`, `solid_judgments`(LLM 채점), `traceability`, `dashboard_metrics`, `wbs_tasks`, `fp_items`, `transcripts`, `events`로 5 Stage·Traceability·Dashboard·EV/FP·이벤트 버스를 모두 담으려 했다. Day 5 피벗에서 검출·설명 폐루프로 범위를 좁히며 위 2테이블만 남겼다. 전체 원설계는 git 히스토리에 남아 있고, 여기서는 접은 사실만 기록한다.
 
 ## 6. CLI 명령 체계
 
+실제 구현된 명령은 다음 6개다 (`nanse --help`로 확인).
+
 ```
-nanse init                              # .nanse/ 생성, SQLite 초기화
-nanse session start                     # 새 세션 시작
-nanse session status                    # 현재 stage·미완 작업 표시
+nanse analyze <file>          # 결정론적 메트릭 검출 (LLM 없음)
+nanse learn <file>            # 위반 finding을 학습 카드로 설명 (ANTHROPIC_API_KEY 필요)
+nanse cards                   # 미검수 학습 카드 목록
+nanse review <CARD-NNN>       # 카드 한 장을 띄워 채택/거절
+nanse seed-demo               # API 키 없이 대시보드를 보도록 예시 데이터 채움
+nanse serve                   # 읽기 API 서버 (FastAPI + uvicorn)
+```
 
-nanse req add <title> <kind>            # REQ-NNN 부여
-nanse uc add <markdown_file>            # UC-NNN 부여, markdown 파싱
+검출 → 설명 → 검수가 한 흐름이고, 검출만 LLM 없이 단독 실행할 수 있다.
 
-nanse analyze <file>                    # 결정론적 메트릭 검출 (LLM 없음)
-nanse cards                             # 미검수 학습 카드 목록
-nanse cards review <CARD-NNN>           # 카드 검수 (채택/거절)
-nanse cards stats                       # 카드 통계
+아래 명령은 원설계 구상이며 구현하지 않았다(설계만).
 
-nanse trace                             # 전체 traceability 매트릭스 출력
-nanse trace gaps                        # 누락 항목만 표시
-nanse trace export                      # 매트릭스 markdown export
-
-nanse dashboard                         # Progress Dashboard 표시
-nanse dashboard --html                  # HTML 출력
-
-# 옵션
-nanse ev                                # EV 계산
-nanse fp add <kind> <complexity>        # FP 입력
-nanse process-log                       # ISO 25010 매핑 표시
+```
+nanse init / session start / session status     # Stage 모듈
+nanse req add / uc add / trace / trace gaps      # Traceability 모듈
+nanse dashboard                                  # Progress Dashboard (웹 대시보드가 일부 대체)
+nanse ev / fp add / process-log                  # EV / FP / Process Log 옵션
 ```
 
 ## 7. Application Boundary
