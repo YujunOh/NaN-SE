@@ -10,7 +10,7 @@
 - `MetricFound` → Learning Card Generator (설명 카드 생성) 구독. 현재 직접 호출로 구현됨
 - `RequirementCreated`, `EditAttempted`, `StageCompleted` → 원설계 모듈(Stage, Process Log 등) 대상. 미구현
 
-이 구조의 이론적 배경은 분산 시스템 영역에서 오래 다뤄진 service choreography 패턴. 모듈 간 결합도를 자료 결합 수준까지 낮추는 효과. 본 과제 prototype에서는 SQLite `events` 테이블 polling으로 흉내내는 수준이지만, 진짜 pub/sub 미들웨어(Redis Streams, NATS, Kafka 등)로 교체하면 확장성과 다중 노드 운용까지 가능한 구조로 갈 수 있음.
+이 구조의 이론적 배경은 분산 시스템 영역에서 오래 다뤄진 service choreography 패턴. 모듈 간 결합도를 자료 결합 수준까지 낮추는 효과. 본 과제 prototype에서는 SQLite `events` 테이블 polling으로 흉내내는 수준이지만, 진짜 pub/sub 미들웨어(Redis Streams, NATS, Kafka 등)로 교체하면 확장성과 다중 노드 운용까지 갈 수 있다.
 
 ## 2. TEE 기반 로컬 실행
 
@@ -28,11 +28,11 @@
 [opencode]               → [nanse adapter] → [Stage]
 ```
 
-hook 인터페이스가 벤더별로 다르기 때문에 표준화되지 않으면 어댑터 수가 폭증할 위험이 있는 구조.
+hook 인터페이스가 벤더별로 다르기 때문에 표준화되지 않으면 어댑터 수가 폭증할 위험이 있다.
 
 ## 4. Production Ready 영역 — 전혀 다른 범위
 
-NaN-SE는 코드 작성 단계의 process gate에 집중. 실제 production-ready 시스템에 필요한 다른 영역은 본 과제 범위 밖이고, 이를 다 다루려면 별도 프로젝트 단위가 필요한 구조.
+NaN-SE는 코드 작성 단계의 process gate에 집중. 실제 production-ready 시스템에 필요한 다른 영역은 본 과제 범위 밖이고, 이를 다 다루려면 별도 프로젝트가 필요하다.
 
 - **CI/CD 파이프라인**: 빌드 자동화, 테스트 자동 실행, 배포 자동화 (Jenkins, GitHub Actions, GitLab CI 등)
 - **보안**: 인증/인가, 권한 관리, 시크릿 관리, 침투 테스트, 의존성 취약점 스캔
@@ -56,4 +56,4 @@ Brooks 법칙: scope 확장 시 통합 비용이 polynomial로 늘어남. 본 �
 
 ## 메모
 
-확장 가능성을 적어두는 것은 좋지만, 12일 안에 만들지 못한 부분을 보고서에 너무 강조하면 "prototype 못 만들고 말로만 때운" 인상을 줄 위험이 있는 상황. 보고서에서는 이 문서를 참고용으로만 링크하고, 본문은 실제 구현한 검출·설명 폐루프의 lessons learned를 중심으로 갈 예정.
+확장 가능성을 적어두는 것은 좋지만, 12일 안에 만들지 못한 부분을 보고서에 너무 강조하면 "prototype 못 만들고 말로만 때운" 인상을 줄 위험이 있다. 보고서에서는 이 문서를 참고용으로만 링크하고, 본문은 실제 구현한 검출·설명 폐루프의 lessons learned를 중심으로 갈 예정.

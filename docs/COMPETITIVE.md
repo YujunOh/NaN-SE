@@ -57,10 +57,10 @@ NaN-SE Stage는 다른 역할.
 | 고객 | 엔터프라이즈 DevOps 조직 | AI 코딩 도구 사용자 |
 | NaN-SE 관계 | 다른 단계 (PR 이후) | NaN-SE가 그 위에 얹는 정책 레이어 |
 
-NaN-SE는 agent harness 위에 올라가는 SW공학 정책 엔진에 가까운 위치. Harness.io와는 SDLC상의 단계 자체가 다른 구조.
+NaN-SE는 agent harness 위에 올라가는 SW공학 정책 엔진에 가깝다. Harness.io와는 SDLC상의 단계 자체가 다르다.
 
 ## 메모
 
-비교표를 만들면서 정리된 점: NaN-SE가 "대체"가 아니라 "보완" 도구라는 점을 처음부터 명확히 잡지 않으면 "또 다른 AI 코딩 도구"로 오해받기 쉬운 구조. 보고서 제목·서론에서 이 점을 강조해야 하는 부분.
+비교표를 만들면서 정리된 점: NaN-SE가 "대체"가 아니라 "보완" 도구라는 점을 처음부터 명확히 잡지 않으면 "또 다른 AI 코딩 도구"로 오해받기 쉽다. 보고서 제목·서론에서 이 점을 강조해야 한다.
 
-또 외부 분석을 참고하면서 "engineering governance platform" 같은 과도한 SaaS 표현이 제안되었지만, 12일 1인 prototype를 "platform"이라 부르는 것은 과장에 가까우므로 일부만 채택. 본 과제는 prototype 골격 수준임을 명확히 표기.
+또 외부 분석을 참고하면서 "engineering governance platform" 같은 과도한 SaaS 표현이 제안되었지만, 12일 1인 prototype를 "platform"이라 부르는 것은 과장에 가까워 일부만 받아들였다. 본 과제는 prototype 골격 수준임을 명확히 표기.
