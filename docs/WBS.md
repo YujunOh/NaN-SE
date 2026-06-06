@@ -9,8 +9,8 @@
 Day:  1    2    3    4    5    6    7    8    9    10   11   12
       [착수][요구][설계][개발──────────────────][통합][테스트][보고서]
                        └Track 1(구현): Metric Analyzer → Learning Card → 검수 CLI┘
-                       └얇은 데모: Stage Gate┘
-                       └보고서 설계만: UseCase Logger / Process Log / FP / EV┘
+                       └설계만(코드 없음): Stage / Traceability┘
+                       └보고서 설계만: Process Log / FP / EV┘
 ```
 
 ## Day-by-Day Breakdown
