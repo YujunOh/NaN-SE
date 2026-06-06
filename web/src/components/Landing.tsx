@@ -99,8 +99,9 @@ export default function Landing({
           <div className="pillar-tag det">검출</div>
           <h3>결정론적이라 흔들리지 않습니다</h3>
           <p className="muted">
-            LCOM4의 연결 요소 수로 응집 결손(SRP)을, radon 순환복잡도로 분기 폭증을
-            정적으로 측정합니다. 같은 코드에는 같은 결과가 나옵니다.
+            LCOM4의 연결 요소 수로 응집 결손을, radon 순환복잡도로 분기 폭증을
+            정적으로 측정합니다. 응집이 갈라지면 SRP 위반, 분기가 폭증하면 OCP
+            위반을 의심합니다. 같은 코드에는 같은 결과가 나옵니다.
           </p>
         </div>
         <div className="pillar">

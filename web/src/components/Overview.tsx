@@ -16,6 +16,16 @@ import { useFetch } from "../useFetch";
 const SEV_COLOR = (s: number) =>
   s >= 7 ? "#e5484d" : s >= 4 ? "#f5a623" : "#30a46c";
 
+const SHORT_PRINCIPLE: Record<string, string> = {
+  "Single Responsibility": "SRP",
+  "Open-Closed": "OCP",
+  "Liskov Substitution": "LSP",
+  "Interface Segregation": "ISP",
+  "Dependency Inversion": "DIP",
+};
+
+const shorten = (p: string) => SHORT_PRINCIPLE[p] ?? p;
+
 const GRID = "#e2e6ee";
 const AXIS = "#66707e";
 const tickStyle = { fontSize: 11, fill: AXIS };
@@ -40,18 +50,35 @@ export default function Overview({
   if (error) return <p className="error">API 연결에 실패했습니다: {error}</p>;
   if (!data) return null;
 
-  const rate =
-    data.acceptance_rate === null
-      ? "—"
-      : `${Math.round(data.acceptance_rate * 100)}%`;
+  const principles = data.by_principle.map((d) => shorten(d.principle));
+  const principleLabel = principles.length ? principles.join(" · ") : "—";
+
+  const topPrinciple = [...data.by_principle].sort(
+    (a, b) => b.count - a.count,
+  )[0];
+  const topPrincipleLabel = topPrinciple
+    ? `${shorten(topPrinciple.principle)} (${topPrinciple.count})`
+    : "—";
+
+  const sevTotal = data.by_severity.reduce((s, d) => s + d.count, 0);
+  const sevWeighted = data.by_severity.reduce(
+    (s, d) => s + d.severity * d.count,
+    0,
+  );
+  const avgSeverity =
+    sevTotal > 0 ? `${(sevWeighted / sevTotal).toFixed(1)} / 10` : "—";
 
   return (
     <div>
+      <p className="muted small" style={{ marginBottom: 12 }}>
+        아래 수치는 <code>nanse seed-demo</code>로 채운 예시 데이터다. 실제
+        분석은 <code>nanse analyze</code>로 채운다.
+      </p>
       <div className="stat-row">
-        <StatCard label="검출 finding" value={String(data.total_findings)} />
-        <StatCard label="학습 카드" value={String(data.total_cards)} />
-        <StatCard label="검수 대기" value={String(data.review.pending)} />
-        <StatCard label="채택률" value={rate} />
+        <StatCard label="검출 finding (임계 초과)" value={String(data.total_findings)} />
+        <StatCard label="검출된 원칙" value={principleLabel} />
+        <StatCard label="가장 잦은 위반" value={topPrincipleLabel} />
+        <StatCard label="평균 심각도" value={avgSeverity} />
       </div>
 
       <div className="chart-grid">
