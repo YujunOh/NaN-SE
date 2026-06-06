@@ -8,11 +8,11 @@
 
 구현된 것: 핵심 폐루프(Metric Analyzer 검출 + Learning Card 설명) + SQLite 단일 store(findings·learning_cards 2테이블) + 읽기 API + 웹 대시보드 + CLI. 설계로만 남은 것: Claude Code Hook 통합, 5 Stage, Traceability, Progress Dashboard 모듈, EV/FP/Process Log.
 
-## 1. 5 Stage (SAGA 패턴 — 부드러운 적용)
+## 1. 5 Stage (SAGA에서 빌린 느슨한 비유 — 미구현)
 
-NaN-SE의 5 Stage는 SDLC를 SAGA로 모델링한 결과. 다만 강제 차단이 아니라 **누락 검출 + 자동 제안** 방식으로 적용.
+> 정직하게 적는다. 아래 SAGA 적용은 설계 단계의 비유일 뿐이고 Stage는 구현하지 않았다(0절). 비유 자체도 느슨하다. SAGA는 분산 트랜잭션의 데이터 일관성을 보상 트랜잭션으로 지키는 패턴인데, SDLC 단계는 분산 트랜잭션이 아니고 되돌릴 커밋 상태도 없다. "긴 작업을 독립 단위로 잘라 단계 간 순서 조건을 둔다"는 표면만 빌렸을 뿐, SAGA의 핵심인 보상 트랜잭션과 일관성 보장과는 거리가 있다. 강의에서 다룬 패턴에 맞춰 보려다 끼워맞춘 면이 있었음을 인정하고, 여기서는 "이렇게 빗대 구상했다"는 기록으로만 남긴다.
 
-SAGA 패턴 자체는 1987년 분산 시스템 논문에서 정립된 것이고, 긴 트랜잭션을 잘게 잘라 독립 단위로 수행하면서 단계 간 ordering constraint를 두는 발상이 핵심. NaN-SE는 그 패턴을 SDLC 도메인에 적용하되, 사용자가 짜증나지 않도록 보상 트랜잭션을 "자동 rollback"이 아니라 "누락을 알리고 자동 생성을 제안하는" 방식으로 부드럽게 바꿨다.
+원래 구상은 SDLC 5단계(요구→설계→구현→테스트→배포)를 SAGA에 빗대, 각 단계에 진입 조건을 두고 누락 시 차단 대신 알림·제안하는 것이었다. 보상 트랜잭션을 "자동 rollback"이 아니라 "누락을 알리고 자동 생성을 제안하는" 부드러운 형태로 바꿔 적용하려 했다. 실제 구현(검출·설명 폐루프)에는 트랜잭션도 단계 게이트도 없어 이 패턴이 필요하지 않았다.
 
 | Stage | 기대 산출물 | 누락 검출 시 동작 |
 |---|---|---|
@@ -39,7 +39,9 @@ stateDiagram-v2
 
 기존 SDLC 도구(claude-sdlc, agentic-sdlc, Superpowers 등)는 phase 흐름을 강제. NaN-SE는 정반대로 **부드러운 제안**만 — 사용자 의사결정 우선.
 
-## 2. Choreography vs Orchestration — Hybrid
+## 2. Choreography vs Orchestration — Hybrid (설계 구상, 미구현)
+
+> 이 절도 원설계의 다중 모듈을 전제한 통신 방식 논의다. 실제 구현은 검출과 설명 두 모듈을 CLI가 직접 호출하는 단순 파이프라인이라, choreography도 orchestration도 필요하지 않았고 이벤트 버스도 없다. 아래는 모듈이 여럿이었을 때를 가정한 설계 기록이다.
 
 SOA·마이크로서비스 영역에서 모듈 간 통신 방식은 크게 두 가지로 분류된다.
 

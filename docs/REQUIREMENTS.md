@@ -104,7 +104,7 @@ flowchart LR
 
 ## 5. Worst-case 시나리오 + 시퀀스 다이어그램
 
-각 worst-case를 시퀀스 다이어그램으로 시각화. 보상 트랜잭션(rollback) 설계는 ARCHITECTURE.md에서 SAGA 패턴으로 완성.
+각 worst-case를 시퀀스 다이어그램으로 시각화했다. 단계 실패 시 되돌림을 보상 트랜잭션 개념에 빗대 정리했는데, 분산 트랜잭션 SAGA의 직접 적용은 아니고 발상만 빌린 설계 수준의 비유다(ARCHITECTURE.md 1절).
 
 ### WC-01: 요구사항 부재 + Stage가 변경을 못 보는 경우
 
