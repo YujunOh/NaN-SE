@@ -156,6 +156,66 @@ flowchart TB
     SV -->|HTTP /api| Web
 ```
 
+### 3.3 클래스 다이어그램 (핵심 데이터 모델)
+
+실제 코드의 핵심 dataclass와 그 흐름이다. 검출층이 `ClassCohesion`·`FunctionComplexity`를 만들고, 임계 초과분이 `MetricFinding`이 되며, finding을 LLM 설명층이 `LearningCard`로 채운다. `Store`가 둘을 저장하고, `TraceRow`는 요구 추적 결과다.
+
+```mermaid
+classDiagram
+    class ClassCohesion {
+        +str class_name
+        +int lcom4
+        +int method_count
+        +int field_count
+        +is_cohesive() bool
+    }
+    class FunctionComplexity {
+        +str name
+        +str classname
+        +int complexity
+    }
+    class MetricFinding {
+        +str class_name
+        +str metric
+        +float value
+        +float threshold
+        +Principle principle
+        +int severity
+    }
+    class LearningCard {
+        +str id
+        +int finding_id
+        +Principle principle
+        +str violation_reason
+        +str revision_prompt
+        +bool user_accepted
+    }
+    class TraceRow {
+        +str req_id
+        +str gap
+        +code_total() int
+        +test_total() int
+    }
+    class Principle {
+        <<enumeration>>
+        SRP
+        OCP
+    }
+    class Store {
+        +save_finding(f, session) int
+        +save_card(card)
+        +get_card(id) LearningCard
+        +review_card(id, accepted) bool
+    }
+    ClassCohesion --> MetricFinding : findings_from_cohesion
+    FunctionComplexity --> MetricFinding : findings_from_complexity
+    MetricFinding --> Principle
+    MetricFinding --> LearningCard : generate_card (LLM 설명)
+    LearningCard --> Principle
+    Store ..> MetricFinding : 저장
+    Store ..> LearningCard : 저장·검수
+```
+
 ## 4. Learning Card 데이터 흐름 (설계 흐름)
 
 > 아래 다이어그램은 hook으로 코드 작성에 inline으로 붙는 원설계 흐름이다. 실제 구현에서 hook 연동과 "채택 시 AI에 자동 전송"은 없다. 사용자가 `nanse analyze`로 검출하고 `nanse learn`으로 카드를 만들고 `nanse review`로 채택·거절하는 CLI 흐름으로 동작하며, 카드의 `revision_prompt`는 사용자가 직접 AI에 붙여넣는다. 검출(Metric Analyzer)이 LLM 없이 결정론적으로 도는 부분은 실제와 같다.

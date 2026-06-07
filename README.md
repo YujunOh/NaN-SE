@@ -57,20 +57,28 @@ nanse trace                              # 요구(UC)↔코드↔테스트 추�
 
 ## 테스트 실행
 
-검출과 요구 추적 로직을 회귀 검증하는 pytest 31개가 있다. 저장소 루트에서 바로 돌릴 수 있다.
+검출·요구 추적·통합 흐름을 회귀 검증하는 pytest 33개가 있다. 저장소 루트에서 바로 돌릴 수 있다.
 
 ```bash
 pip install -e ".[dev]"   # pytest 설치 (이미 .[api]를 깔았다면 pytest만 추가됨)
 python -m pytest -q
 ```
 
-기대 출력은 `31 passed`다. 커버 범위는 다음과 같다.
+기대 출력은 `33 passed`다. 커버 범위는 다음과 같다.
 
 | 파일 | 검증 대상 |
 |---|---|
 | `tests/test_lcom.py` | LCOM4 계산 (정상·god class·메서드 호출 연결·staticmethod 제외·빈 클래스·잘못된 입력 예외·클래스 없음·타입) |
 | `tests/test_complexity.py` | radon 순환복잡도 검출과 임계 매핑 |
 | `tests/test_traceability.py` | 요구↔코드↔테스트 존재 검증과 gap 분류(complete·no_code·no_test) |
+| `tests/test_integration.py` | 검출 → 카드 생성 → 저장 → 검수 end-to-end (가짜 LLM 주입) |
+
+### 컨테이너로 실행
+
+```bash
+docker compose up --build      # 읽기 API → http://localhost:8000
+docker run --rm nanse:latest nanse analyze examples/auth_service.py
+```
 | `tests/test_learning_card.py` | 학습 카드 파이프라인 (가짜 LLM 주입으로 네트워크 없이 검증) |
 | `tests/test_store.py` | SQLite 저장·조회·검수 상태 |
 

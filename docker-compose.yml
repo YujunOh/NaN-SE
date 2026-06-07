@@ -1,0 +1,9 @@
+# 읽기 API를 컨테이너로 띄운다. 웹 대시보드(web/)는 이 API를 /api로 호출한다.
+# 사용: docker compose up --build  →  http://localhost:8000
+services:
+  api:
+    build: .
+    image: nanse:latest
+    ports:
+      - "8000:8000"
+    command: ["nanse", "serve", "--host", "0.0.0.0", "--port", "8000"]
