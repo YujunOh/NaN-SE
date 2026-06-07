@@ -271,7 +271,7 @@ $ nanse dashboard
 
 ## 6. 차별점 — 기존 도구와의 위치
 
-상세 비교는 [COMPETITIVE.md](./COMPETITIVE.md). 솔직히 정리하면 각 모듈 단독으로는 비슷한 도구가 이미 존재.
+상세 비교는 [COMPETITIVE.md](./COMPETITIVE.md). 각 모듈 단독으로는 비슷한 도구가 이미 존재한다.
 
 - **메트릭 검출 영역**: SonarQube, radon 등 정적 분석 도구. LLM 코드 리뷰(CodeRabbit, Greptile, Qodo 등)도 코멘트를 남김. NaN-SE 차별점은 검출 자체가 아니라 검출→설명→검수 폐루프
 - **Traceability 영역**: shtracer, traceability-matrices, reqflow, Claude Plugin Hub의 traceability-check
