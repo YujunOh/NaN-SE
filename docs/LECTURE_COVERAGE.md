@@ -19,7 +19,7 @@
 | 의존 역전(DIP) | 위와 같음. 단 NaN-SE 자신은 LLM 호출을 주입 가능한 `complete`로 분리해 DIP를 코드로 실천 | 설명/문서 |
 | 리스코프(LSP)·인터페이스 분리(ISP) | 기계적 판정이 어려워 검출 안 함. 보고서에서 한계로 명시 | 범위 밖 |
 
-OCP/DIP/LSP/ISP를 LLM에 채점시키지 않는 건 의도적 결정이다. 확률적 채점은 신뢰할 수 없다는 판단("Are We SOLID Yet?" 결과)에서 검출은 결정론적 메트릭으로 가능한 SRP/복잡도에 한정하고, 나머지는 설명층과 문서로 다룬다. 경위는 DISCUSSION_LOG.md Day 5.
+OCP/DIP/LSP/ISP를 LLM에 점수를 매기게 하지 않는 건 의도적 결정이다. 확률적 점수 매기기는 신뢰할 수 없다는 판단("Are We SOLID Yet?" 결과)에서 검출은 결정론적 메트릭으로 가능한 SRP/복잡도에 한정하고, 나머지는 설명층과 문서로 다룬다. 경위는 DISCUSSION_LOG.md Day 5.
 
 ## 2. 테스팅·복잡도
 
@@ -52,8 +52,8 @@ OCP/DIP/LSP/ISP를 LLM에 채점시키지 않는 건 의도적 결정이다. 확
 
 ## 5. 정직한 갭
 
-1. **결정론적 검출은 SRP(LCOM4)와 순환복잡도 둘뿐이다.** 결합도·OCP·DIP·LSP·ISP는 검출하지 않는다. 이건 한계가 아니라 "확률적 채점을 신뢰하지 않는다"는 설계 결정의 결과다. 보고서에 분명히 적는다.
-2. **피벗 전 서술은 정리했다(Day 5 후속).** ARCHITECTURE.md·VISION.md·LEARNING_CARDS.md·METRICS.md·AI_TOOLING.md 상단에 피벗 배너를 달고, 옛 "SOLID Judge(LLM 채점)" 표현을 검출층(Metric Analyzer)과 LLM 설명층(Learning Card)으로 정정했다. DISCUSSION_LOG·REQUIREMENTS·WBS의 "SOLID Judge"는 피벗 경위를 기록하는 역사 서술이라 의도적으로 남겼다.
+1. **결정론적 검출은 SRP(LCOM4)와 순환복잡도 둘뿐이다.** 결합도·OCP·DIP·LSP·ISP는 검출하지 않는다. 이건 한계가 아니라 "확률적 점수 매기기를 신뢰하지 않는다"는 설계 결정의 결과다. 보고서에 분명히 적는다.
+2. **피벗 전 서술은 정리했다(Day 5 후속).** ARCHITECTURE.md·VISION.md·LEARNING_CARDS.md·METRICS.md·AI_TOOLING.md 상단에 피벗 배너를 달고, 옛 "SOLID Judge(LLM 점수 매기기)" 표현을 검출층(Metric Analyzer)과 LLM 설명층(Learning Card)으로 정정했다. DISCUSSION_LOG·REQUIREMENTS·WBS의 "SOLID Judge"는 피벗 경위를 기록하는 역사 서술이라 의도적으로 남겼다.
 3. **응집도 7단계·결합도 6단계의 명칭 분류는 안 한다.** LCOM4는 연결 요소 개수라 "분리가 필요하다"는 신호는 주지만 "이건 교환적 응집"처럼 단계명을 붙이지는 않는다.
 
 ## 6. 강의가 강조한 메시지와 NaN-SE의 정렬

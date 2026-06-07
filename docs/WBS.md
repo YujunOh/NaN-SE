@@ -67,7 +67,7 @@ gantt
 
 ### Track 1 — Metric Analyzer + Learning Card (핵심, Day 4-7)
 
-> Day 5 피벗: LLM 채점(SOLID Judge)을 폐기하고 결정론적 검출(Metric Analyzer)과 LLM 설명(Learning Card)으로 분리. 검출은 LLM을 쓰지 않는다.
+> Day 5 피벗: LLM 점수 매기기(SOLID Judge)을 폐기하고 결정론적 검출(Metric Analyzer)과 LLM 설명(Learning Card)으로 분리. 검출은 LLM을 쓰지 않는다.
 
 이유: 코드 분석 → Metric Analyzer 결정론적 검출 → 확정 finding → Learning Card 생성 → 검수가 한 흐름. 분리 시 통합 비용 큼.
 

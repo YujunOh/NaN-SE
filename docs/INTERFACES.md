@@ -96,7 +96,7 @@ class LearningCard(BaseModel):
     severity: int    # MetricFinding.severity 복사 (0-10)
     code_hash: str
 
-    # LLM이 채우는 콘텐츠 (자연어 설명만, 채점 아님)
+    # LLM이 채우는 콘텐츠 (자연어 설명만, 점수 매기기 아님)
     violation_reason: str
     cost_example: str
     before_code: str

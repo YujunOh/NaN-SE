@@ -2,7 +2,7 @@
 
 > Day 1 초안에서 출발. Day 5에 설계 피벗을 반영해 유스케이스와 worst-case를 다시 정리했다.
 >
-> **피벗 요약**: 검출은 결정론적 정적 메트릭(LCOM4, 순환복잡도)으로만 하고 LLM은 점수를 매기지 않는다. LLM은 확정된 위반을 학습 카드로 설명만 한다. 채점을 LLM에 맡기면 신뢰할 수 없다는 판단("Are We SOLID Yet?" 결과)에서 나온 결정이다. 자세한 경위는 DISCUSSION_LOG.md Day 5 참조.
+> **피벗 요약**: 검출은 결정론적 정적 메트릭(LCOM4, 순환복잡도)으로만 하고 LLM은 점수를 매기지 않는다. LLM은 확정된 위반을 학습 카드로 설명만 한다. 점수 매기기를 LLM에 맡기면 신뢰할 수 없다는 판단("Are We SOLID Yet?" 결과)에서 나온 결정이다. 자세한 경위는 DISCUSSION_LOG.md Day 5 참조.
 >
 > **구현 범위**: Metric Analyzer(검출)와 Learning Card(설명·검수)를 실제 구현한다. Traceability는 최소 구현(요구↔코드↔테스트 존재 검증 매트릭스, `nanse trace`)까지만 두고, 전체 자동 갱신은 미구현이다. Stage는 설계만 하고 코드는 두지 않는다(원래부터 차단이 아니라 누락 검출·제안 방식 설계). EV/FP/Process Log도 보고서에서 설계만 언급한다.
 
@@ -92,7 +92,7 @@ flowchart LR
 
 ### 3.4 액터 경계에서 정리한 점
 
-피벗 전에는 UC-03의 액터를 "AI Agent"로 잡고 SOLID Judge가 LLM으로 채점하는 구조였다. 이때 LLM이 외부 액터인지 내부 컴포넌트인지 경계가 흐렸다. 피벗 후 검출은 결정론적 정적 분석이라 LLM이 빠졌고, 검출 트리거 액터는 사용자로 분명해졌다. LLM은 UC-04의 설명 생성에만 관여하는 외부 의존성으로 경계가 정리됐다. application boundary는 ARCHITECTURE.md에 그려둔다.
+피벗 전에는 UC-03의 액터를 "AI Agent"로 잡고 SOLID Judge가 LLM으로 점수를 매기는 구조였다. 이때 LLM이 외부 액터인지 내부 컴포넌트인지 경계가 흐렸다. 피벗 후 검출은 결정론적 정적 분석이라 LLM이 빠졌고, 검출 트리거 액터는 사용자로 분명해졌다. LLM은 UC-04의 설명 생성에만 관여하는 외부 의존성으로 경계가 정리됐다. application boundary는 ARCHITECTURE.md에 그려둔다.
 
 ## 4. 비기능 요구사항
 

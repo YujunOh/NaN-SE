@@ -21,7 +21,7 @@ NaN-SE는 두 가지를 더한다.
 
 ## 2. 데이터 모델
 
-> 아래는 초기 설계 스케치다. 실제 구현 모델은 `nanse/learning_card/models.py`에 있고, 피벗으로 채점을 없앴으므로 `score`·`diff_hash` 대신 `severity`·`code_hash`를 쓰고 `finding_id`로 검출 finding을 참조한다(점수 컬럼 없음).
+> 아래는 초기 설계 스케치다. 실제 구현 모델은 `nanse/learning_card/models.py`에 있고, 피벗으로 점수 매기기를 없앴으므로 `score`·`diff_hash` 대신 `severity`·`code_hash`를 쓰고 `finding_id`로 검출 finding을 참조한다(점수 컬럼 없음).
 
 ```python
 from pydantic import BaseModel, Field
@@ -43,7 +43,7 @@ class LearningCard(BaseModel):
     session_id: str
     finding_id: int  # Metric Analyzer 검출 finding ID
     
-    # 채점 결과
+    # 점수 매기기 결과
     principle: Principle
     score: int = Field(ge=0, le=10)  # 0-10, 낮을수록 위반 심각
     diff_hash: str

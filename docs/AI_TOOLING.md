@@ -1,6 +1,6 @@
 # AI 도구 선정 근거
 
-> **피벗 반영(Day 5)**: 검출은 결정론적 메트릭(Metric Analyzer)이 하고 LLM은 확정된 위반을 학습 카드로 설명만 한다. 아래에서 옛 "SOLID Judge(LLM 채점)" 표현은 LLM 설명층(Learning Card)으로 정정한다. 경위는 DISCUSSION_LOG.md Day 5.
+> **피벗 반영(Day 5)**: 검출은 결정론적 메트릭(Metric Analyzer)이 하고 LLM은 확정된 위반을 학습 카드로 설명만 한다. 아래에서 옛 "SOLID Judge(LLM 점수 매기기)" 표현은 LLM 설명층(Learning Card)으로 정정한다. 경위는 DISCUSSION_LOG.md Day 5.
 
 과제 명세: "바이브코딩을 위한 인공지능은 자율적으로 선정 가능."
 

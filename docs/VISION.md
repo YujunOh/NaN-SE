@@ -1,6 +1,6 @@
 # VISION: NaN-SE
 
-> **피벗 반영(Day 5)**: 위반 검출은 결정론적 메트릭(Metric Analyzer: LCOM4, 순환복잡도)이 하고 LLM은 채점하지 않는다. 아래 옛 "SOLID Judge" 표현은 검출층(Metric Analyzer)으로 정정한다. 경위는 DISCUSSION_LOG.md Day 5.
+> **피벗 반영(Day 5)**: 위반 검출은 결정론적 메트릭(Metric Analyzer: LCOM4, 순환복잡도)이 하고 LLM은 점수를 매기지 않는다. 아래 옛 "SOLID Judge" 표현은 검출층(Metric Analyzer)으로 정정한다. 경위는 DISCUSSION_LOG.md Day 5.
 
 ## 요약
 
@@ -105,7 +105,7 @@ IP가 본질적으로 unreliable하지만 TCP 덕분에 사용자가 안심하�
 
 - 구현: 웹 대시보드(`nanse serve`)가 총 finding 수, 학습 카드 수, 채택률, 원칙별 finding 분포, 지표 설명을 보여준다
 - 미구현: SOLID 통과율 7일·30일 트렌드, 연속 사용 일수(streak), 모듈별 진척
-- 결정적 가치: "강제·채점·차단"이 아닌 **성취감 유발** UX. 학습이 누적되는 게 보이는 보상 구조
+- 결정적 가치: "강제·점수 매기기·차단"이 아닌 **성취감 유발** UX. 학습이 누적되는 게 보이는 보상 구조
 
 ### 옵션 모듈 (선택 사용)
 
@@ -219,7 +219,7 @@ PaymentService를 다음 4개로 분리하세요:
 - InventoryUpdater (update_inventory)
 ```
 
-Claude Code가 재작성 → NaN-SE가 재채점 → SRP 8/10 통과.
+Claude Code가 재작성 → NaN-SE가 재점수 매기기 → SRP 8/10 통과.
 
 ### 5.3 Commit 시점에 Traceability 자동 갱신
 
@@ -279,7 +279,7 @@ $ nanse dashboard
 
 NaN-SE의 차별점은 다음에서 온다.
 
-1. **검출과 설명의 분리** — 위반 검출은 결정론적 메트릭(LCOM4·순환복잡도)이 하고 LLM은 채점하지 않는다. 같은 코드에 같은 결과가 나오므로 평가가 흔들리지 않는다. 이번 prototype에서 실제로 구현한 핵심 기여
+1. **검출과 설명의 분리** — 위반 검출은 결정론적 메트릭(LCOM4·순환복잡도)이 하고 LLM은 점수를 매기지 않는다. 같은 코드에 같은 결과가 나오므로 평가가 흔들리지 않는다. 이번 prototype에서 실제로 구현한 핵심 기여
 2. **자동 재요청 prompt 생성** — 기존 LLM 리뷰는 코멘트만 남기고 끝. NaN-SE는 학습 카드에 AI agent로 다시 보낼 수정 prompt까지 담는다
 3. **(설계 방향) 모듈 결합** — 검출·설명에 더해 Traceability·Stage까지 하나의 흐름으로 통합하는 것이 목표지만, 둘은 아직 설계 단계이고 코드는 없다
 

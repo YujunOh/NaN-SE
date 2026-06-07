@@ -1,6 +1,6 @@
 # Architecture: NaN-SE
 
-> Day 5 피벗으로 LLM 채점을 버리고 결정론적 검출(LCOM4·순환복잡도)과 LLM 설명(Learning Card)으로 분리했다. 1절의 SAGA·Stage·이벤트 버스·EV/FP/Process Log는 피벗 때 접은 원설계이고 구현하지 않았다(설계 기록). 실제 구현 범위는 0절 참조.
+> Day 5 피벗으로 LLM 점수 매기기를 버리고 결정론적 검출(LCOM4·순환복잡도)과 LLM 설명(Learning Card)으로 분리했다. 1절의 SAGA·Stage·이벤트 버스·EV/FP/Process Log는 피벗 때 접은 원설계이고 구현하지 않았다(설계 기록). 실제 구현 범위는 0절 참조.
 
 ## 0. 한 줄 요약
 
@@ -114,7 +114,7 @@ classDiagram
 
 ### 4.1 실제 구현 스키마 (`nanse/db/store.py`)
 
-피벗 후 store는 두 테이블로 단순화됐다. 검출 결과(`findings`)와 그 위반을 설명한 학습 카드(`learning_cards`)이고, 카드는 `finding_id`로 finding을 참조한다. LLM 채점 구조(`solid_judgments`)는 폐기됐으므로 점수 컬럼이 없다.
+피벗 후 store는 두 테이블로 단순화됐다. 검출 결과(`findings`)와 그 위반을 설명한 학습 카드(`learning_cards`)이고, 카드는 `finding_id`로 finding을 참조한다. LLM 점수 매기기 구조(`solid_judgments`)는 폐기됐으므로 점수 컬럼이 없다.
 
 ```sql
 CREATE TABLE findings (
@@ -185,7 +185,7 @@ erDiagram
 
 ### 4.2 원설계 스키마 (접음, 참고용)
 
-피벗 전 11테이블 설계다. `sessions`, `stages`, `requirements`, `usecases`, `solid_judgments`(LLM 채점), `traceability`, `dashboard_metrics`, `wbs_tasks`, `fp_items`, `transcripts`, `events`로 5 Stage·Traceability·Dashboard·EV/FP·이벤트 버스를 모두 담으려 했다. Day 5 피벗에서 검출·설명 폐루프로 범위를 좁히며 위 2테이블만 남겼다. 전체 원설계는 git 히스토리에 남아 있고, 여기서는 접은 사실만 기록한다.
+피벗 전 11테이블 설계다. `sessions`, `stages`, `requirements`, `usecases`, `solid_judgments`(LLM 점수 매기기), `traceability`, `dashboard_metrics`, `wbs_tasks`, `fp_items`, `transcripts`, `events`로 5 Stage·Traceability·Dashboard·EV/FP·이벤트 버스를 모두 담으려 했다. Day 5 피벗에서 검출·설명 폐루프로 범위를 좁히며 위 2테이블만 남겼다. 전체 원설계는 git 히스토리에 남아 있고, 여기서는 접은 사실만 기록한다.
 
 ## 5. CLI 명령 체계
 
