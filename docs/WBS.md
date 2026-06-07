@@ -65,7 +65,7 @@ gantt
 
 > Day 5 피벗 결과 트랙 재조정. 실제 구현은 Track 1(Metric Analyzer + Learning Card)에 집중한다. 아래 Track 2~4는 초기 계획 기록으로 남기되 구현 범위에서 제외하고 보고서 설계 언급으로 강등했다(경위: DISCUSSION_LOG.md Day 5).
 
-### Track 1 — Metric Analyzer + Learning Card (핵심 핫 패스, Day 4-7)
+### Track 1 — Metric Analyzer + Learning Card (핵심, Day 4-7)
 
 > Day 5 피벗: LLM 채점(SOLID Judge)을 폐기하고 결정론적 검출(Metric Analyzer)과 LLM 설명(Learning Card)으로 분리. 검출은 LLM을 쓰지 않는다.
 

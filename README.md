@@ -25,7 +25,7 @@ AI coding agent는 *무엇을 만들지* 정한다. NaN-SE는 그 결과물이 �
 | 왜 이렇게 설계했나 | [docs/VISION.md](./docs/VISION.md)(배경·컨셉), [docs/DISCUSSION_LOG.md](./docs/DISCUSSION_LOG.md)(일자별 의사결정) |
 | 깊은 설계·구현 | [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md), [docs/REQUIREMENTS.md](./docs/REQUIREMENTS.md), [docs/LEARNING_CARDS.md](./docs/LEARNING_CARDS.md) |
 
-나머지(METRICS·COMPETITIVE·INTERFACES·FUTURE_WORK·LECTURE_COVERAGE·WBS·EV_LOG·AI_USAGE)는 특정 주제를 깊게 볼 때만 참조한다.
+나머지(METRICS·COMPETITIVE·INTERFACES·LECTURE_COVERAGE·WBS·EV_LOG·AI_USAGE)는 특정 주제를 깊게 볼 때만 참조한다.
 
 ## 빠른 시작
 
@@ -74,6 +74,10 @@ python -m pytest -q
 | `tests/test_complexity.py` | radon 순환복잡도 검출과 임계 매핑 |
 | `tests/test_traceability.py` | 요구↔코드↔테스트 존재 검증과 gap 분류(complete·no_code·no_test) |
 | `tests/test_integration.py` | 검출 → 카드 생성 → 저장 → 검수 end-to-end (가짜 LLM 주입) |
+| `tests/test_learning_card.py` | 학습 카드 파이프라인 (가짜 LLM 주입으로 네트워크 없이 검증) |
+| `tests/test_store.py` | SQLite 저장·조회·검수 상태 |
+
+검출은 결정론적이라 같은 코드에 항상 같은 값이 나오므로 `assert ==`로 값을 고정해 검증한다.
 
 ### 컨테이너로 실행
 
@@ -81,10 +85,6 @@ python -m pytest -q
 docker compose up --build      # 읽기 API → http://localhost:8000
 docker run --rm nanse:latest nanse analyze examples/auth_service.py
 ```
-| `tests/test_learning_card.py` | 학습 카드 파이프라인 (가짜 LLM 주입으로 네트워크 없이 검증) |
-| `tests/test_store.py` | SQLite 저장·조회·검수 상태 |
-
-특정 파일만 돌리려면 `python -m pytest tests/test_lcom.py -v`. 검출은 결정론적이라 같은 코드에 항상 같은 값이 나오므로 `assert ==`로 값을 고정해 검증한다.
 
 ## 동작 모습
 
@@ -221,9 +221,7 @@ NaN-SE는 하나의 벤더(Claude, GPT, Gemini, 자체 LLM)에 종속되지 않�
 - 대시보드: FastAPI + uvicorn (읽기 API), Vite + React + recharts (web)
 - 다이어그램: Mermaid
 
-Claude Code hook 통합(`PreToolUse`, `Stop`, `UserPromptSubmit`)으로 코드 작성 직후 inline 검출하는 구조는 설계 방향이며 이번 범위에서 구현하지 않았다. [docs/FUTURE_WORK.md](./docs/FUTURE_WORK.md)
-
-확장 가능성 (현재 범위 밖): [docs/FUTURE_WORK.md](./docs/FUTURE_WORK.md)
+Claude Code hook 통합(`PreToolUse`, `Stop`, `UserPromptSubmit`)으로 코드 작성 직후 inline 검출하는 구조는 설계 방향이며 이번 범위에서 구현하지 않았다.
 
 ## 문서 인덱스
 
@@ -237,7 +235,6 @@ Claude Code hook 통합(`PreToolUse`, `Stop`, `UserPromptSubmit`)으로 코드 �
 | [WBS](./docs/WBS.md) | 12일 일정 + 트랙 구조 |
 | [METRICS](./docs/METRICS.md) | FP / EV / ISO 25010 정의·공식 (옵션 모듈) |
 | [COMPETITIVE](./docs/COMPETITIVE.md) | 기존 도구 비교 (CodeRabbit, traceability-check 등) |
-| [FUTURE_WORK](./docs/FUTURE_WORK.md) | 확장 가능성 (Pub/Sub, TEE, multi-vendor) |
 | [DISCUSSION_LOG](./docs/DISCUSSION_LOG.md) | 일별 자연어 토의·의사결정 일지 |
 | [AI_TOOLING](./docs/AI_TOOLING.md) | AI 도구 선정 근거 |
 | [AI_USAGE](./docs/AI_USAGE.md) | AI 사용 일지 |

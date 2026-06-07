@@ -214,7 +214,7 @@ nanse ev / fp add / process-log                  # EV / FP / Process Log 옵션
 
 ## 6. 보안·위험 메모
 
-검출은 로컬 계산이라 코드를 외부로 보내지 않는다. 학습 카드 생성 시에만 대상 코드가 Anthropic API로 전송되며, 이 전송이 유일한 보안 risk다(로컬 모델 실행으로 보강 가능, FUTURE_WORK). 주요 실패 대응(REQUIREMENTS 5절 worst-case와 매핑):
+검출은 로컬 계산이라 코드를 외부로 보내지 않는다. 학습 카드 생성 시에만 대상 코드가 Anthropic API로 전송되며, 이 전송이 유일한 보안 risk다(로컬 모델 실행으로 보강 가능). 주요 실패 대응(REQUIREMENTS 5절 worst-case와 매핑):
 
 | 위험 | 대응 |
 |---|---|
