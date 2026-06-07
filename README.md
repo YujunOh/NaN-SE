@@ -1,5 +1,7 @@
 # NaN-SE
 
+[![CI](https://github.com/YujunOh/NaN-SE/actions/workflows/ci.yml/badge.svg)](https://github.com/YujunOh/NaN-SE/actions/workflows/ci.yml)
+
 > AI가 만든 코드의 **응집도·복잡도 위반을 결정론적으로 검출**하고, 그 위반을 **학습 카드로 설명**한다. 검출은 LLM을 쓰지 않아 흔들리지 않고, 판정은 사람이 한다.
 
 ### 이름의 뜻
