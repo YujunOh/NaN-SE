@@ -67,3 +67,11 @@ def test_load_spec_from_toml(tmp_path: Path) -> None:
 def test_load_spec_default_when_missing(tmp_path: Path) -> None:
     spec = load_spec(tmp_path / "nope.toml")
     assert "UC-03" in spec  # 기본 매핑
+
+
+def test_req_id_propagates(tmp_path: Path) -> None:
+    _touch(tmp_path, "src/a.py")
+    _touch(tmp_path, "tests/test_a.py")
+    spec = {"UC-1": {"req": "REQ-01", "title": "기능", "code": ["src/a.py"], "test": ["tests/test_a.py"]}}
+    rows = build_matrix(spec, tmp_path)
+    assert rows[0].req == "REQ-01"

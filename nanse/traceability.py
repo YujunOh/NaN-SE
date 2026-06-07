@@ -17,6 +17,7 @@ from pathlib import Path
 # 명세 파일이 없을 때 쓰는 기본 매핑. 실제 NaN-SE의 구현된 유스케이스만 담는다.
 DEFAULT_SPEC: dict[str, dict] = {
     "UC-03": {
+        "req": "REQ-01",
         "title": "위반의 결정론적 검출",
         "code": [
             "nanse/metrics/lcom.py",
@@ -26,6 +27,7 @@ DEFAULT_SPEC: dict[str, dict] = {
         "test": ["tests/test_lcom.py", "tests/test_complexity.py"],
     },
     "UC-04": {
+        "req": "REQ-02",
         "title": "학습 카드 생성",
         "code": [
             "nanse/learning_card/generator.py",
@@ -36,9 +38,16 @@ DEFAULT_SPEC: dict[str, dict] = {
         "test": ["tests/test_learning_card.py"],
     },
     "UC-05": {
+        "req": "REQ-03",
         "title": "학습 카드 검수·저장",
         "code": ["nanse/db/store.py", "nanse/cli/__init__.py"],
         "test": ["tests/test_store.py"],
+    },
+    "UC-trace": {
+        "req": "REQ-04",
+        "title": "요구↔코드↔테스트 존재 검증",
+        "code": ["nanse/traceability.py"],
+        "test": ["tests/test_traceability.py"],
     },
 }
 
@@ -49,6 +58,7 @@ class TraceRow:
 
     req_id: str
     title: str
+    req: str = ""
     code_present: list[str] = field(default_factory=list)
     code_missing: list[str] = field(default_factory=list)
     test_present: list[str] = field(default_factory=list)
@@ -104,6 +114,7 @@ def build_matrix(spec: dict[str, dict], root: Path) -> list[TraceRow]:
             TraceRow(
                 req_id=req_id,
                 title=entry.get("title", ""),
+                req=entry.get("req", ""),
                 code_present=code_present,
                 code_missing=code_missing,
                 test_present=test_present,

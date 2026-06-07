@@ -97,7 +97,8 @@ def trace(
         "no_test": "[yellow]no_test[/yellow]",
         "no_code": "[red]no_code[/red]",
     }
-    table = Table(title="요구 추적 매트릭스 (UC ↔ 코드 ↔ 테스트)")
+    table = Table(title="요구 추적 매트릭스 (REQ ↔ UC ↔ 코드 ↔ 테스트)")
+    table.add_column("REQ")
     table.add_column("UC")
     table.add_column("요구")
     table.add_column("코드", justify="center")
@@ -105,6 +106,7 @@ def trace(
     table.add_column("상태")
     for r in rows:
         table.add_row(
+            r.req,
             r.req_id,
             r.title,
             f"{len(r.code_present)}/{r.code_total}",

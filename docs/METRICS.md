@@ -71,4 +71,13 @@ NaN-SE가 실제로 측정하는 지표는 둘이다. 클래스 응집도(LCOM4)
 
 피벗 전 SOLID Judge 시기 설계에는 IFPUG Function Point 카운터와 PMBOK Earned Value 추적기가 도구 모듈로 들어 있었다. Day 5 피벗에서 검출·설명 폐루프로 범위를 좁히며 둘 다 구현하지 않았다. 현재 `NaN-SE` 패키지에 `fp_counter`·`ev_tracker` 모듈도, `nanse fp`·`nanse wbs ev` 명령도 없다.
 
-EV(SPI/CPI)는 이 과제 자체의 일정 관리 용도로만 `docs/WBS.md`에서 손계산으로 쓴다. 도구가 사용자 코드의 FP나 프로젝트 EV를 자동 계산한다고 보고서에 적지 않는다. FP/EV 표준 정의를 학습한 흔적은 WBS.md 일정 절에 남아 있다.
+다만 규모 추정 자체는 이 산출물에 한 번 손으로 적용했다. 구현 범위를 IFPUG 간이 카운트로 보면 대략 다음과 같다.
+
+| 유형 | 항목 | 가중(low) | 소계 |
+|---|---|---|---|
+| ILF | findings·learning_cards 두 테이블 | 2 × 7 | 14 |
+| EI | analyze·learn·review(채택/거절)·seed-demo | 4 × 3 | 12 |
+| EQ | cards 목록·trace 매트릭스·analyze 출력 | 3 × 3 | 9 |
+| EO | 대시보드 집계(읽기 API) | 1 × 4 | 4 |
+
+보정 없이 약 **39 UFP**다. 자동 산정이 아니라 우리 산출물에 표준을 1회 적용한 추정이고, 도구가 사용자 코드의 FP를 자동 계산하지는 않는다. EV(SPI/CPI)는 이 과제 일정 관리용으로 `docs/WBS.md`에서 손계산으로 쓴다.
