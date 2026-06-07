@@ -147,7 +147,7 @@ class Stage(Protocol):
     def transition(self, to_stage: StageName) -> bool: ...
 ```
 
-## 4. Traceability (요구 추적) — 설계만, 코드 없음
+## 4. Traceability (요구 추적) — 부분 구현 (존재 검증은 `nanse/traceability.py`, 나머지는 설계만)
 
 ```python
 @dataclass

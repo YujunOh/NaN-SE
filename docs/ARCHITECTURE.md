@@ -6,7 +6,7 @@
 
 ## 0. 한 줄 요약
 
-구현된 것: 핵심 폐루프(Metric Analyzer 검출 + Learning Card 설명) + SQLite 단일 store(findings·learning_cards 2테이블) + 읽기 API + 웹 대시보드 + CLI. 설계로만 남은 것: Claude Code Hook 통합, 5 Stage, Traceability, Progress Dashboard 모듈, EV/FP/Process Log.
+구현된 것: 핵심 폐루프(Metric Analyzer 검출 + Learning Card 설명) + SQLite 단일 store(findings·learning_cards 2테이블) + 읽기 API + 웹 대시보드 + CLI + 요구 추적 최소 구현(`nanse trace`: UC↔코드↔테스트 존재 검증·gap 분류). 설계로만 남은 것: Claude Code Hook 통합, 5 Stage, Progress Dashboard 모듈, EV/FP/Process Log, 그리고 Traceability의 전체 설계(commit 태그 자동 갱신·Mermaid export).
 
 ## 1. 5 Stage (SAGA에서 빌린 느슨한 비유 — 미구현)
 
@@ -278,24 +278,25 @@ erDiagram
 
 ## 6. CLI 명령 체계
 
-실제 구현된 명령은 다음 6개다 (`nanse --help`로 확인).
+실제 구현된 명령은 다음 7개다 (`nanse --help`로 확인).
 
 ```
 nanse analyze <file>          # 결정론적 메트릭 검출 (LLM 없음)
 nanse learn <file>            # 위반 finding을 학습 카드로 설명 (ANTHROPIC_API_KEY 필요)
 nanse cards                   # 미검수 학습 카드 목록
 nanse review <CARD-NNN>       # 카드 한 장을 띄워 채택/거절
+nanse trace [--gaps]          # 요구(UC)↔코드↔테스트 존재 검증 매트릭스 + gap (LLM 없음)
 nanse seed-demo               # API 키 없이 대시보드를 보도록 예시 데이터 채움
 nanse serve                   # 읽기 API 서버 (FastAPI + uvicorn)
 ```
 
-검출 → 설명 → 검수가 한 흐름이고, 검출만 LLM 없이 단독 실행할 수 있다.
+검출 → 설명 → 검수가 한 흐름이고, 검출과 추적은 LLM 없이 단독 실행할 수 있다.
 
 아래 명령은 원설계 구상이며 구현하지 않았다(설계만).
 
 ```
 nanse init / session start / session status     # Stage 모듈
-nanse req add / uc add / trace / trace gaps      # Traceability 모듈
+nanse req add / uc add / trace export            # Traceability 전체 설계 (자동 갱신·export는 미구현)
 nanse dashboard                                  # Progress Dashboard (웹 대시보드가 일부 대체)
 nanse ev / fp add / process-log                  # EV / FP / Process Log 옵션
 ```

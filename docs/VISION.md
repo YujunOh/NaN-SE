@@ -94,7 +94,7 @@ IP가 본질적으로 unreliable하지만 TCP 덕분에 사용자가 안심하�
 - 강제 게이트 도구와 정반대 메시지 — "부드러움"이 정체성
 - 결정적 가치: 단계 의식 자연스럽게 환기 + 진행 흐름 시각화
 
-### 핵심 3 — Traceability (요구 추적 데모) — 미구현(설계만)
+### 핵심 3 — Traceability (요구 추적) — 부분 구현(존재 검증 매트릭스)
 
 - REQ-001 ↔ UC-001 ↔ src/code.py ↔ tests/test_code.py 자동 매트릭스
 - commit message 태그 `[REQ-001][UC-001]` 매칭으로 자동 갱신

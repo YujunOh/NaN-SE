@@ -4,7 +4,7 @@
 >
 > **피벗 요약**: 검출은 결정론적 정적 메트릭(LCOM4, 순환복잡도)으로만 하고 LLM은 점수를 매기지 않는다. LLM은 확정된 위반을 학습 카드로 설명만 한다. 채점을 LLM에 맡기면 신뢰할 수 없다는 판단("Are We SOLID Yet?" 결과)에서 나온 결정이다. 자세한 경위는 DISCUSSION_LOG.md Day 5 참조.
 >
-> **구현 범위**: Metric Analyzer(검출)와 Learning Card(설명·검수)를 실제 구현한다. Stage와 Traceability는 설계만 하고 코드는 두지 않는다. EV/FP/Process Log도 보고서에서 설계만 언급한다. Stage는 원래부터 차단이 아니라 누락 검출·제안 방식으로 설계했다.
+> **구현 범위**: Metric Analyzer(검출)와 Learning Card(설명·검수)를 실제 구현한다. Traceability는 최소 구현(요구↔코드↔테스트 존재 검증 매트릭스, `nanse trace`)까지만 두고, 전체 자동 갱신은 미구현이다. Stage는 설계만 하고 코드는 두지 않는다(원래부터 차단이 아니라 누락 검출·제안 방식 설계). EV/FP/Process Log도 보고서에서 설계만 언급한다.
 
 ## 1. 페르소나 (Day 2 확장)
 

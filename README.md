@@ -52,23 +52,25 @@ export ANTHROPIC_API_KEY=sk-...          # 학습 카드 생성에만 필요
 nanse learn examples/auth_service.py     # 위반을 학습 카드로 설명
 nanse cards                              # 미검수 카드 목록
 nanse review CARD-001                    # 카드 한 장을 띄워 채택/거절
+nanse trace                              # 요구(UC)↔코드↔테스트 추적 매트릭스 + gap
 ```
 
 ## 테스트 실행
 
-검출 로직을 회귀 검증하는 pytest 25개가 있다. 저장소 루트에서 바로 돌릴 수 있다.
+검출과 요구 추적 로직을 회귀 검증하는 pytest 31개가 있다. 저장소 루트에서 바로 돌릴 수 있다.
 
 ```bash
 pip install -e ".[dev]"   # pytest 설치 (이미 .[api]를 깔았다면 pytest만 추가됨)
 python -m pytest -q
 ```
 
-기대 출력은 `25 passed`다. 커버 범위는 다음과 같다.
+기대 출력은 `31 passed`다. 커버 범위는 다음과 같다.
 
 | 파일 | 검증 대상 |
 |---|---|
 | `tests/test_lcom.py` | LCOM4 계산 (정상·god class·메서드 호출 연결·staticmethod 제외·빈 클래스·잘못된 입력 예외·클래스 없음·타입) |
 | `tests/test_complexity.py` | radon 순환복잡도 검출과 임계 매핑 |
+| `tests/test_traceability.py` | 요구↔코드↔테스트 존재 검증과 gap 분류(complete·no_code·no_test) |
 | `tests/test_learning_card.py` | 학습 카드 파이프라인 (가짜 LLM 주입으로 네트워크 없이 검증) |
 | `tests/test_store.py` | SQLite 저장·조회·검수 상태 |
 
@@ -156,7 +158,7 @@ NaN-SE의 핵심은 위반을 *찾는 일*과 *설명하는 일*을 다른 층�
 
 ## 모듈과 구현 범위
 
-Day 5 피벗으로 실제 구현은 검출과 설명 두 모듈에 집중한다. 나머지는 설계로만 남겼다(코드 없음).
+Day 5 피벗으로 실제 구현은 검출과 설명에 집중하고, 요구 추적(Traceability)은 최소 한 줄기만 구현했다. 나머지는 설계로 남겼다.
 
 ### 구현
 
@@ -164,6 +166,7 @@ Day 5 피벗으로 실제 구현은 검출과 설명 두 모듈에 집중한다.
 |---|---|
 | **Metric Analyzer** (구현) | AI 생성 코드를 결정론적 정적 메트릭으로 검출. LCOM4 직접 구현으로 SRP·응집도 위반을, radon으로 순환복잡도를 검출. LLM을 쓰지 않아 동일 코드는 항상 동일 결과 |
 | **Learning Card** (구현) | 확정된 위반을 LLM이 학습 카드로 설명 (위반 이유·운영 단계 비용 예시·Before/After 코드·재요청 prompt). 점수는 매기지 않고 설명만. 사용자 검수 후 AI에 다시 전달하는 폐쇄 루프 |
+| **Traceability** (부분 구현) | `nanse trace`로 요구(UC)↔코드↔테스트 존재를 결정론적으로 검증하고 gap(complete·no_code·no_test)을 분류. 명세는 `traceability.toml`. 전체 설계(commit 태그 자동 갱신·Mermaid export)는 미구현 |
 
 ### 설계만 (코드 없음)
 
@@ -172,7 +175,6 @@ Day 5 피벗으로 실제 구현은 검출과 설명 두 모듈에 집중한다.
 | 모듈 | 범위 |
 |---|---|
 | Stage | SDLC 5단계 누락 검출 + 제안 (차단하지 않는 방식). 설계만 |
-| Traceability | REQ ↔ UC ↔ code ↔ test 매핑. 설계만 |
 | EV Tracker / FP Counter / Process Log | EV(PMBOK)·FP(IFPUG)·ISO 25010 매핑. 설계만 |
 
 ## 기존 도구와의 위치
