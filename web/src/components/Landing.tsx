@@ -17,16 +17,8 @@ export default function Landing({
 }: {
   onEnter?: (tab: "overview" | "findings" | "cards" | "metrics") => void;
 }) {
-  const stats = useFetch(() => api.stats());
   const docs = useFetch(() => api.docs());
   const [openSlug, setOpenSlug] = useState<string | null>(null);
-
-  const findingCount = stats.data ? String(stats.data.total_findings) : "—";
-  const cardCount = stats.data ? String(stats.data.total_cards) : "—";
-  const rate =
-    stats.data && stats.data.acceptance_rate !== null
-      ? `${Math.round(stats.data.acceptance_rate * 100)}%`
-      : "—";
 
   return (
     <div className="landing">
@@ -51,9 +43,9 @@ export default function Landing({
             </button>
           </div>
           <div className="hero-stats">
-            <HeroStat value={findingCount} label="검출 finding" />
-            <HeroStat value={cardCount} label="학습 카드" />
-            <HeroStat value={rate} label="채택률" />
+            <HeroStat value="2" label="검출 지표 (LCOM4·복잡도)" />
+            <HeroStat value="33" label="통과 테스트" />
+            <HeroStat value="0" label="검출에 쓰는 LLM" />
           </div>
         </div>
         <aside className="hero-term" aria-hidden="true">
