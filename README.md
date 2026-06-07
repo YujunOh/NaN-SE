@@ -14,18 +14,20 @@ AI coding agent는 *무엇을 만들지* 정한다. NaN-SE는 그 결과물이 �
 
 의도된 범위 결정이다. **같은 코드에 항상 같은 판정이 나오도록 기계적으로 측정 가능한 위반만** 검출한다. LCOM4는 클래스 응집 결손을 세어 SRP 위반 신호를, 순환복잡도는 분기 폭증을 세어 OCP 위반 신호를 준다. 둘 다 결정론적이다. 반면 LSP·ISP·DIP나 결합도 일부는 기계 판정이 어렵거나 확률적 점수가 필요한데, 그걸 LLM에 맡기면 같은 코드도 매번 다른 점수가 나온다. 신뢰할 수 없다고 보고 검출 대상에서 뺐다. 적게 잡더라도 흔들리지 않는 쪽을 택했다. (근거 연구 "Are We SOLID Yet?", 경위는 [docs/DISCUSSION_LOG.md](./docs/DISCUSSION_LOG.md) Day 5)
 
-### 이 저장소를 읽는 순서
+### 이 저장소를 읽는 순서 (SW공학 프로세스 흐름)
 
-문서가 많지만 다 읽을 필요는 없다. 목적별 진입점만 보면 된다.
+요구분석에서 형상관리까지 개발 단계 순서대로 따라가면 된다. 각 단계의 산출물이 어디 있는지 정리한다.
 
-| 목적 | 먼저 볼 것 |
+| 단계 | 산출물 · 어디서 보나 |
 |---|---|
-| 과제 평가 | [docs/REPORT.md](./docs/REPORT.md) — 프로세스 적용 보고서(요구분석→품질관리, lessons learned). 이 README는 도구 사용법이다 |
-| 무엇을 만들었나 빠르게 | 아래 **빠른 시작** + **동작 모습** |
-| 왜 이렇게 설계했나 | [docs/VISION.md](./docs/VISION.md)(배경·컨셉), [docs/DISCUSSION_LOG.md](./docs/DISCUSSION_LOG.md)(일자별 의사결정) |
-| 깊은 설계·구현 | [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md), [docs/REQUIREMENTS.md](./docs/REQUIREMENTS.md), [docs/LEARNING_CARDS.md](./docs/LEARNING_CARDS.md) |
+| 1. 요구분석 | [REQUIREMENTS.md](./docs/REQUIREMENTS.md) — 페르소나·5W1H 페인포인트·유스케이스 다이어그램(include/extend)·비기능 요구·신뢰성 요구 |
+| 2. 설계 (UML) | [ARCHITECTURE.md](./docs/ARCHITECTURE.md) — 클래스 다이어그램·as-built 구조·ER 스키마, 그리고 REQUIREMENTS의 worst-case 시퀀스 다이어그램 |
+| 3. 구현 | 아래 **빠른 시작** + **동작 모습**. 컨테이너 실행은 `Dockerfile`·`docker-compose.yml` |
+| 4. 테스트 | 아래 **테스트 실행**(pytest 33: 단위 + 통합) + CI([`.github/workflows/ci.yml`])가 커밋마다 자동 검증 |
+| 5. 형상관리·프로세스 | 커밋 이력 + [DISCUSSION_LOG.md](./docs/DISCUSSION_LOG.md)(일자별 결정·피벗) + `.github` 이슈/PR 템플릿 |
+| 6. 과제 평가 | [REPORT.md](./docs/REPORT.md) — 위 전 과정의 프로세스 적용과 lessons learned |
 
-나머지(METRICS·COMPETITIVE·INTERFACES·LECTURE_COVERAGE·WBS·EV_LOG·AI_USAGE)는 특정 주제를 깊게 볼 때만 참조한다.
+배경·컨셉은 [VISION.md](./docs/VISION.md), 지표 정의는 [METRICS.md](./docs/METRICS.md). 나머지(COMPETITIVE·INTERFACES·LECTURE_COVERAGE·WBS·EV_LOG·AI_USAGE)는 주제별 참조.
 
 ## 빠른 시작
 
