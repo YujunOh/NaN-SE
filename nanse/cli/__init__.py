@@ -74,6 +74,50 @@ def analyze(path: Path) -> None:
 
 
 @app.command()
+def trace(
+    spec: Path | None = None,
+    gaps: bool = False,
+    root: Path | None = None,
+) -> None:
+    """요구(UC) ↔ 코드 ↔ 테스트 추적 매트릭스를 출력하고 gap을 표시한다. (LLM 없음)
+
+    spec 미지정 시 현재 폴더의 traceability.toml을, 그것도 없으면 기본 매핑을 쓴다.
+    --gaps 는 미완(코드·테스트 누락) 항목만 보여준다.
+    """
+    from nanse.traceability import build_matrix, gaps_only, load_spec
+
+    work_root = root or Path.cwd()
+    spec_path = spec or (work_root / "traceability.toml")
+    rows = build_matrix(load_spec(spec_path), work_root)
+    if gaps:
+        rows = gaps_only(rows)
+
+    status = {
+        "complete": "[green]complete[/green]",
+        "no_test": "[yellow]no_test[/yellow]",
+        "no_code": "[red]no_code[/red]",
+    }
+    table = Table(title="요구 추적 매트릭스 (UC ↔ 코드 ↔ 테스트)")
+    table.add_column("UC")
+    table.add_column("요구")
+    table.add_column("코드", justify="center")
+    table.add_column("테스트", justify="center")
+    table.add_column("상태")
+    for r in rows:
+        table.add_row(
+            r.req_id,
+            r.title,
+            f"{len(r.code_present)}/{r.code_total}",
+            f"{len(r.test_present)}/{r.test_total}",
+            status.get(r.gap, r.gap),
+        )
+    console.print(table)
+
+    if not rows:
+        console.print("[green]gap 없음. 모든 요구가 코드와 테스트로 추적됨.[/green]")
+
+
+@app.command()
 def learn(path: Path, db: Path | None = None) -> None:
     """검출된 위반 finding을 LLM 설명층에 넘겨 학습 카드를 생성·저장한다.
 
