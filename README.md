@@ -20,12 +20,12 @@ AI coding agent는 *무엇을 만들지* 정한다. NaN-SE는 그 결과물이 �
 
 | 단계 | 산출물 · 어디서 보나 |
 |---|---|
-| 1. 요구분석 | [REQUIREMENTS.md](./docs/REQUIREMENTS.md) — 페르소나·5W1H 페인포인트·유스케이스 다이어그램(include/extend)·비기능 요구·신뢰성 요구 |
-| 2. 설계 (UML) | [ARCHITECTURE.md](./docs/ARCHITECTURE.md) — 클래스 다이어그램·as-built 구조·ER 스키마, 그리고 REQUIREMENTS의 worst-case 시퀀스 다이어그램 |
+| 1. 요구분석 | [REQUIREMENTS.md](./docs/REQUIREMENTS.md): 페르소나·5W1H 페인포인트·유스케이스 다이어그램(include/extend)·비기능 요구·신뢰성 요구 |
+| 2. 설계 (UML) | [ARCHITECTURE.md](./docs/ARCHITECTURE.md): 클래스 다이어그램·as-built 구조·ER 스키마, 그리고 REQUIREMENTS의 worst-case 시퀀스 다이어그램 |
 | 3. 구현 | 아래 **빠른 시작** + **동작 모습**. 컨테이너 실행은 `Dockerfile`·`docker-compose.yml` |
 | 4. 테스트 | 아래 **테스트 실행**(pytest 40: 단위·통합·회귀·스모크·provider) + CI([`.github/workflows/ci.yml`])가 커밋마다 자동 검증 |
 | 5. 형상관리·프로세스 | 커밋 이력 + [DISCUSSION_LOG.md](./docs/DISCUSSION_LOG.md)(일자별 결정·피벗) + `.github` 이슈/PR 템플릿 |
-| 6. 과제 평가 | [REPORT.md](./docs/REPORT.md) — 위 전 과정의 프로세스 적용과 lessons learned |
+| 6. 과제 평가 | [REPORT.md](./docs/REPORT.md): 위 전 과정의 프로세스 적용과 lessons learned |
 
 배경·컨셉은 [VISION.md](./docs/VISION.md), 지표 정의는 [METRICS.md](./docs/METRICS.md). 나머지(COMPETITIVE·INTERFACES·LECTURE_COVERAGE·WBS·EV_LOG·AI_USAGE)는 주제별 참조.
 
@@ -153,17 +153,17 @@ AI coding agent를 쓰는 개발 흐름의 흔한 패턴은 이렇다.
 
 겉으로는 빠르게 끝난 것 같지만, 실제로는 다음이 누적된다.
 
-- **토큰 낭비** — AI가 추측성 기능·미래 대비 추상화를 만들면 사용자가 다시 지우는 데 또 토큰을 쓴다. 같은 작업을 두 번 결제한 셈
-- **시간 낭비** — 빨리 끝난 줄 알았던 작업이 며칠 뒤 디버깅 비용으로 돌아온다. "AI 코드 디버깅이 직접 코딩보다 오래 걸렸다"는 응답이 개발자 45%대 (Stack Overflow Survey 2025)
-- **자원 낭비** — 어차피 해야 할 작업(요구 정리·설계·테스트·문서)이 뒤로 미뤄지며 기술부채가 누적된다. 사람이 손 안 댄 단계들이 쌓이면 다른 사람이 손 댈 수도 없는 상태로 변한다
-- **검증 누락** — 코드가 돌아가는 것과 요구를 만족하는 것은 다른 문제다. V&V를 한 번도 거치지 않은 산출물이 그대로 main에 들어가는 일이 일상화된다
-- **버그·보안 결함의 정량 차이** — CodeRabbit 조사(2025) 기준 AI 생성 코드는 직접 작성 대비 버그 1.7배, 보안 취약성 2배로 검출됨. 논리 오류율은 75% 수준. "코드가 돌아간다"와 "안전하게 쓸 수 있다"는 다른 문제이고, 그 차이를 직접 검증하지 않으면 운영 단계에서 비용으로 돌아온다
+- **토큰 낭비**: AI가 추측성 기능·미래 대비 추상화를 만들면 사용자가 다시 지우는 데 또 토큰을 쓴다. 같은 작업을 두 번 결제한 셈
+- **시간 낭비**: 빨리 끝난 줄 알았던 작업이 며칠 뒤 디버깅 비용으로 돌아온다. "AI 코드 디버깅이 직접 코딩보다 오래 걸렸다"는 응답이 개발자 45%대 (Stack Overflow Survey 2025)
+- **자원 낭비**: 어차피 해야 할 작업(요구 정리·설계·테스트·문서)이 뒤로 미뤄지며 기술부채가 누적된다. 사람이 손 안 댄 단계들이 쌓이면 다른 사람이 손 댈 수도 없는 상태로 변한다
+- **검증 누락**: 코드가 돌아가는 것과 요구를 만족하는 것은 다른 문제다. V&V를 한 번도 거치지 않은 산출물이 그대로 main에 들어가는 일이 일상화된다
+- **버그·보안 결함의 정량 차이**: CodeRabbit 조사(2025) 기준 AI 생성 코드는 직접 작성 대비 버그 1.7배, 보안 취약성 2배로 검출됨. 논리 오류율은 75% 수준. "코드가 돌아간다"와 "안전하게 쓸 수 있다"는 다른 문제이고, 그 차이를 직접 검증하지 않으면 운영 단계에서 비용으로 돌아온다
 
 기존 도구들(SonarQube, Helicone, LangSmith 등)은 코드 작성 이후의 정적 분석이나 LLM 비용 추적에 집중되어 있고, AI가 코드를 만드는 과정 자체에 SW공학 절차를 끼워넣는 도구는 빈자리로 남아있다.
 
 NaN-SE는 이 빈자리에 들어가는 미들웨어다. AI coding agent를 대체하는 도구가 아니라, agent가 만든 산출물의 SRP·응집도 위반을 결정론적 정적 메트릭(LCOM4·순환복잡도)으로 검출하고, 확정된 위반을 LLM이 학습 카드로 설명해 사용자가 검수하게 한다. 검출과 설명을 분리한 게 핵심이다. 점수 매기기는 LLM에 맡기지 않는다.
 
-## 핵심 아이디어 — 검출과 설명을 분리한다
+## 핵심 아이디어: 검출과 설명을 분리한다
 
 NaN-SE의 핵심은 위반을 *찾는 일*과 *설명하는 일*을 다른 층으로 나눈 것이다.
 
@@ -206,7 +206,7 @@ NaN-SE는 하나의 벤더(Claude, GPT, Gemini, 자체 LLM)에 종속되지 않�
 
 자세한 비교는 [docs/COMPETITIVE.md](./docs/COMPETITIVE.md)
 
-## 핵심 정책 — 검수는 사람이 한다
+## 핵심 정책: 검수는 사람이 한다
 
 검증(Verification)과 확인(Validation)은 결국 사람이 한다는 점이 핵심. 검출은 결정론적이지만 위반을 고칠지, 학습 카드의 교정 예시를 받아들일지는 사용자가 정한다.
 
@@ -235,7 +235,7 @@ Claude Code hook 통합(`PreToolUse`, `Stop`, `UserPromptSubmit`)으로 코드 �
 |---|---|
 | [VISION](./docs/VISION.md) | 비전·배경·TCP 비유·로드맵 |
 | [ARCHITECTURE](./docs/ARCHITECTURE.md) | 4 핵심 모듈 + 옵션, SQLite 스키마, CLI 명령 체계 |
-| [LEARNING_CARDS](./docs/LEARNING_CARDS.md) | 학습 카드 시스템 — 데이터 모델, 생성 파이프라인, 본인 구현 vs LLM 영역 |
+| [LEARNING_CARDS](./docs/LEARNING_CARDS.md) | 학습 카드 시스템: 데이터 모델, 생성 파이프라인, 본인 구현 vs LLM 영역 |
 | [INTERFACES](./docs/INTERFACES.md) | Protocol 기반 모듈 contract |
 | [REQUIREMENTS](./docs/REQUIREMENTS.md) | 페르소나, 5W1H 페인포인트, 유스케이스, V&V 정책 |
 | [WBS](./docs/WBS.md) | 12일 일정 + 트랙 구조 |
