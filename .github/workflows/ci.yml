@@ -17,5 +17,7 @@ jobs:
         run: pip install -e ".[dev,api]"
       - name: 테스트
         run: python -m pytest -q
+      - name: 스모크 (실행되나)
+        run: nanse analyze examples/auth_service.py
       - name: 요구 추적 게이트
         run: nanse trace

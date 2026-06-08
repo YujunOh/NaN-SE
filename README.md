@@ -23,7 +23,7 @@ AI coding agent는 *무엇을 만들지* 정한다. NaN-SE는 그 결과물이 �
 | 1. 요구분석 | [REQUIREMENTS.md](./docs/REQUIREMENTS.md) — 페르소나·5W1H 페인포인트·유스케이스 다이어그램(include/extend)·비기능 요구·신뢰성 요구 |
 | 2. 설계 (UML) | [ARCHITECTURE.md](./docs/ARCHITECTURE.md) — 클래스 다이어그램·as-built 구조·ER 스키마, 그리고 REQUIREMENTS의 worst-case 시퀀스 다이어그램 |
 | 3. 구현 | 아래 **빠른 시작** + **동작 모습**. 컨테이너 실행은 `Dockerfile`·`docker-compose.yml` |
-| 4. 테스트 | 아래 **테스트 실행**(pytest 33: 단위 + 통합) + CI([`.github/workflows/ci.yml`])가 커밋마다 자동 검증 |
+| 4. 테스트 | 아래 **테스트 실행**(pytest 36: 단위·통합·회귀·스모크) + CI([`.github/workflows/ci.yml`])가 커밋마다 자동 검증 |
 | 5. 형상관리·프로세스 | 커밋 이력 + [DISCUSSION_LOG.md](./docs/DISCUSSION_LOG.md)(일자별 결정·피벗) + `.github` 이슈/PR 템플릿 |
 | 6. 과제 평가 | [REPORT.md](./docs/REPORT.md) — 위 전 과정의 프로세스 적용과 lessons learned |
 
@@ -61,23 +61,25 @@ nanse trace                              # 요구(UC)↔코드↔테스트 추�
 
 ## 테스트 실행
 
-검출·요구 추적·통합 흐름을 회귀 검증하는 pytest 33개가 있다. 저장소 루트에서 바로 돌릴 수 있다.
+검출·요구 추적·통합 흐름을 회귀 검증하는 pytest 36개가 있다. 저장소 루트에서 바로 돌릴 수 있다.
 
 ```bash
 pip install -e ".[dev]"   # pytest 설치 (이미 .[api]를 깔았다면 pytest만 추가됨)
 python -m pytest -q
 ```
 
-기대 출력은 `33 passed`다. 커버 범위는 다음과 같다.
+기대 출력은 `36 passed`다. 커버 범위는 다음과 같다.
 
 | 파일 | 검증 대상 |
 |---|---|
 | `tests/test_lcom.py` | LCOM4 계산 (정상·god class·메서드 호출 연결·staticmethod 제외·빈 클래스·잘못된 입력 예외·클래스 없음·타입) |
 | `tests/test_complexity.py` | radon 순환복잡도 검출과 임계 매핑 |
-| `tests/test_traceability.py` | 요구↔코드↔테스트 존재 검증과 gap 분류(complete·no_code·no_test) |
+| `tests/test_traceability.py` | REQ↔UC↔코드↔테스트 존재 검증과 gap 분류(complete·no_code·no_test) |
 | `tests/test_integration.py` | 검출 → 카드 생성 → 저장 → 검수 end-to-end (가짜 LLM 주입) |
 | `tests/test_learning_card.py` | 학습 카드 파이프라인 (가짜 LLM 주입으로 네트워크 없이 검증) |
 | `tests/test_store.py` | SQLite 저장·조회·검수 상태 |
+| `tests/test_smoke.py` | 예시 분석이 끝까지 도는지 1차 점검 |
+| `tests/test_regression.py` | god class LCOM4=3 고정 (생성자 버그 재발 가드) |
 
 검출은 결정론적이라 같은 코드에 항상 같은 값이 나오므로 `assert ==`로 값을 고정해 검증한다.
 
