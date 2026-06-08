@@ -1,6 +1,6 @@
 # 독립 검증: opencode 핸드오프
 
-NaN-SE는 Claude CLI(Claude Code)로 개발했습니다. 같은 도구로 자기 결과를 검증하면 편향되므로, 마감 전에 다른 AI 코딩 에이전트인 oh-my-opencode(GPT-5.5)에 저장소를 그대로 넘겨 독립적으로 다시 확인했습니다. 개발 모델(Claude)과 검증 모델(GPT-5.5)이 벤더부터 달라 교차검증이 됩니다. 아래 프롬프트를 그 세션에 그대로 넣고 돌렸습니다.
+NaN-SE는 Claude CLI(Claude Code)로 개발했습니다. 같은 도구로 자기 결과를 검증하면 편향되므로, 마감 전에 다른 AI 코딩 에이전트인 oh-my-opencode(GPT-5.5)에 저장소를 그대로 넘겨 다시 확인했습니다. 개발 모델(Claude)과 검증 모델(GPT-5.5)을 일부러 갈라서, 같은 모델이 자기 결과를 봐주는 상황을 피했습니다. 아래 프롬프트를 그 세션에 그대로 넣고 돌렸습니다.
 
 ## 검증자에게 넣은 프롬프트
 
@@ -27,8 +27,10 @@ NaN-SE는 Claude CLI(Claude Code)로 개발했습니다. 같은 도구로 자기
 
 ## 캡처
 
-위 1~4를 실행한 opencode 터미널 결과를 `docs/assets/cap-handoff.png`로 저장해 보고서(REPORT 5.5)에 넣습니다.
+위 1~4를 실행한 결과와 Claude CLI 원문 세션 대조 결과를 `docs/assets/cap-handoff.png`로 저장해 보고서(REPORT 5.5)에 넣었습니다.
 
 ## 검증 결과 (요약)
 
-opencode가 보고한 판정을 여기에 한두 줄로 적습니다. (a) 검출 LLM 0개, (b) REQ-01~04 추적 complete, (c) 테스트 전부 통과가 코드에서 그대로 확인됐는지.
+검증 결과, (a) `nanse/metrics/`에는 LLM/provider/network 호출 키워드가 없었고, (b) `nanse trace`에서 REQ-01~REQ-04가 모두 `complete`였고, (c) `python -m pytest -q`는 `40 passed, 1 warning`으로 끝났습니다. `nanse analyze examples/auth_service.py`도 두 번 실행해 출력이 완전히 같았고, AuthService는 LCOM4=3으로 SRP 위반 신호가 잡혔습니다.
+
+Claude CLI 원문 로그는 `docs/evidence/claude-cli/2312c204-dfcf-4420-bdd7-16034fd68e4c/`에 sync했습니다. 실제 API key처럼 보이는 값 1개가 있어 저장소에는 무가공 원문 대신 redacted JSONL을 두고, 원본 경로·라인 수·SHA256은 `manifest.json`에 남겼습니다.
