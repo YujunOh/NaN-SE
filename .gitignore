@@ -59,3 +59,7 @@ gen_hw7_hwpx.py
 # Logs
 *.log
 logs/
+
+# 핸드오프 증빙: 원문 transcript는 용량이 커서 제외(manifest의 SHA256로 존재 증명).
+# subagents 로그·manifest·README만 추적한다.
+docs/evidence/**/jsonl-redacted/*.jsonl

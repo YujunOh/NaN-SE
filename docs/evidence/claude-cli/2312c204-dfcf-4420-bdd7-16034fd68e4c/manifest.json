@@ -1,0 +1,171 @@
+{
+  "synced_at": "2026-06-08T12:42:43.237651+00:00",
+  "session_id": "2312c204-dfcf-4420-bdd7-16034fd68e4c",
+  "source_root": "C:\\Users\\dbwns\\.claude\\projects\\C--Users-dbwns",
+  "target_root": "C:\\PROGRAMMING\\2026_1_SPRING\\courses\\소프트웨어공학\\nanse\\docs\\evidence\\claude-cli\\2312c204-dfcf-4420-bdd7-16034fd68e4c",
+  "redaction": "Actual API-key-like values are replaced with [REDACTED_SECRET]. Environment variable names and placeholder examples are preserved.",
+  "files": [
+    {
+      "source_path": "C:\\Users\\dbwns\\.claude\\projects\\C--Users-dbwns\\2312c204-dfcf-4420-bdd7-16034fd68e4c.jsonl",
+      "synced_path": "docs\\evidence\\claude-cli\\2312c204-dfcf-4420-bdd7-16034fd68e4c\\jsonl-redacted\\2312c204-dfcf-4420-bdd7-16034fd68e4c.jsonl",
+      "bytes_original": 35580197,
+      "lines_original": 9961,
+      "sha256_original": "6b9ce5c8d3c9efab7c481eff36d66cd11d7ae5d74b72c91eb73a8617b0877f6d",
+      "sha256_redacted": "2fde4b111b5e5be4b734759322caee05877182baf21a67d6502bb72233e78340",
+      "redactions": 1
+    },
+    {
+      "source_path": "C:\\Users\\dbwns\\.claude\\projects\\C--Users-dbwns\\2312c204-dfcf-4420-bdd7-16034fd68e4c\\subagents\\agent-a0ffc297f0ca0510c.jsonl",
+      "synced_path": "docs\\evidence\\claude-cli\\2312c204-dfcf-4420-bdd7-16034fd68e4c\\jsonl-redacted\\subagents\\agent-a0ffc297f0ca0510c.jsonl",
+      "bytes_original": 495002,
+      "lines_original": 19,
+      "sha256_original": "04a64017c62ff680b8ec5671241201d5f78dd3bd265b1d7ebe7549e081ebbf69",
+      "sha256_redacted": "04a64017c62ff680b8ec5671241201d5f78dd3bd265b1d7ebe7549e081ebbf69",
+      "redactions": 0
+    },
+    {
+      "source_path": "C:\\Users\\dbwns\\.claude\\projects\\C--Users-dbwns\\2312c204-dfcf-4420-bdd7-16034fd68e4c\\subagents\\agent-a1bb6880021cbfc58.jsonl",
+      "synced_path": "docs\\evidence\\claude-cli\\2312c204-dfcf-4420-bdd7-16034fd68e4c\\jsonl-redacted\\subagents\\agent-a1bb6880021cbfc58.jsonl",
+      "bytes_original": 297967,
+      "lines_original": 37,
+      "sha256_original": "e1e0554b769cf99784226122bf8cb565491bddca77b937d78b5137c04744dda1",
+      "sha256_redacted": "e1e0554b769cf99784226122bf8cb565491bddca77b937d78b5137c04744dda1",
+      "redactions": 0
+    },
+    {
+      "source_path": "C:\\Users\\dbwns\\.claude\\projects\\C--Users-dbwns\\2312c204-dfcf-4420-bdd7-16034fd68e4c\\subagents\\agent-a1db80b7c3823fa5a.jsonl",
+      "synced_path": "docs\\evidence\\claude-cli\\2312c204-dfcf-4420-bdd7-16034fd68e4c\\jsonl-redacted\\subagents\\agent-a1db80b7c3823fa5a.jsonl",
+      "bytes_original": 3264872,
+      "lines_original": 37,
+      "sha256_original": "5ef78457bc94c3cb0b1813206631c9c969cb7f5fecfbe18008b919377ec30dc3",
+      "sha256_redacted": "5ef78457bc94c3cb0b1813206631c9c969cb7f5fecfbe18008b919377ec30dc3",
+      "redactions": 0
+    },
+    {
+      "source_path": "C:\\Users\\dbwns\\.claude\\projects\\C--Users-dbwns\\2312c204-dfcf-4420-bdd7-16034fd68e4c\\subagents\\agent-a42bfeee006db8aa5.jsonl",
+      "synced_path": "docs\\evidence\\claude-cli\\2312c204-dfcf-4420-bdd7-16034fd68e4c\\jsonl-redacted\\subagents\\agent-a42bfeee006db8aa5.jsonl",
+      "bytes_original": 186080,
+      "lines_original": 22,
+      "sha256_original": "d7f855134a3bac22f2c0c845dbb16931021740e2dda445229182f1c25546b07e",
+      "sha256_redacted": "d7f855134a3bac22f2c0c845dbb16931021740e2dda445229182f1c25546b07e",
+      "redactions": 0
+    },
+    {
+      "source_path": "C:\\Users\\dbwns\\.claude\\projects\\C--Users-dbwns\\2312c204-dfcf-4420-bdd7-16034fd68e4c\\subagents\\agent-a442fc3be239fc4ec.jsonl",
+      "synced_path": "docs\\evidence\\claude-cli\\2312c204-dfcf-4420-bdd7-16034fd68e4c\\jsonl-redacted\\subagents\\agent-a442fc3be239fc4ec.jsonl",
+      "bytes_original": 386609,
+      "lines_original": 32,
+      "sha256_original": "01aa77a4ef10b34774e2e617d645375c83806122158ce43d52c22f75dc604ced",
+      "sha256_redacted": "01aa77a4ef10b34774e2e617d645375c83806122158ce43d52c22f75dc604ced",
+      "redactions": 0
+    },
+    {
+      "source_path": "C:\\Users\\dbwns\\.claude\\projects\\C--Users-dbwns\\2312c204-dfcf-4420-bdd7-16034fd68e4c\\subagents\\agent-a55123e450d848d68.jsonl",
+      "synced_path": "docs\\evidence\\claude-cli\\2312c204-dfcf-4420-bdd7-16034fd68e4c\\jsonl-redacted\\subagents\\agent-a55123e450d848d68.jsonl",
+      "bytes_original": 130498,
+      "lines_original": 36,
+      "sha256_original": "6a583456bd7bac2e15d81789a9aa9ed8261b0d478878e20a8c53c2462b21fd8a",
+      "sha256_redacted": "6a583456bd7bac2e15d81789a9aa9ed8261b0d478878e20a8c53c2462b21fd8a",
+      "redactions": 0
+    },
+    {
+      "source_path": "C:\\Users\\dbwns\\.claude\\projects\\C--Users-dbwns\\2312c204-dfcf-4420-bdd7-16034fd68e4c\\subagents\\agent-a640a26883adaa0f4.jsonl",
+      "synced_path": "docs\\evidence\\claude-cli\\2312c204-dfcf-4420-bdd7-16034fd68e4c\\jsonl-redacted\\subagents\\agent-a640a26883adaa0f4.jsonl",
+      "bytes_original": 172691,
+      "lines_original": 31,
+      "sha256_original": "f104aaf2b3d06afc6eeec93f0251ce58378f693e0fb773fe08f889193f4641c7",
+      "sha256_redacted": "f104aaf2b3d06afc6eeec93f0251ce58378f693e0fb773fe08f889193f4641c7",
+      "redactions": 0
+    },
+    {
+      "source_path": "C:\\Users\\dbwns\\.claude\\projects\\C--Users-dbwns\\2312c204-dfcf-4420-bdd7-16034fd68e4c\\subagents\\agent-a6416a99cb7ed5cbe.jsonl",
+      "synced_path": "docs\\evidence\\claude-cli\\2312c204-dfcf-4420-bdd7-16034fd68e4c\\jsonl-redacted\\subagents\\agent-a6416a99cb7ed5cbe.jsonl",
+      "bytes_original": 149660,
+      "lines_original": 36,
+      "sha256_original": "936529eaa991917fb4897c4709f9b585ecdfb30dc61a8d8b78c16d12c7b5a59f",
+      "sha256_redacted": "936529eaa991917fb4897c4709f9b585ecdfb30dc61a8d8b78c16d12c7b5a59f",
+      "redactions": 0
+    },
+    {
+      "source_path": "C:\\Users\\dbwns\\.claude\\projects\\C--Users-dbwns\\2312c204-dfcf-4420-bdd7-16034fd68e4c\\subagents\\agent-a667de6bf0bdb38bc.jsonl",
+      "synced_path": "docs\\evidence\\claude-cli\\2312c204-dfcf-4420-bdd7-16034fd68e4c\\jsonl-redacted\\subagents\\agent-a667de6bf0bdb38bc.jsonl",
+      "bytes_original": 177177,
+      "lines_original": 23,
+      "sha256_original": "78d2b70dc39b6dadb7644335b6ad14754b990e9aed882bee7a4a27b4622e3ae1",
+      "sha256_redacted": "78d2b70dc39b6dadb7644335b6ad14754b990e9aed882bee7a4a27b4622e3ae1",
+      "redactions": 0
+    },
+    {
+      "source_path": "C:\\Users\\dbwns\\.claude\\projects\\C--Users-dbwns\\2312c204-dfcf-4420-bdd7-16034fd68e4c\\subagents\\agent-a68c51ff827640501.jsonl",
+      "synced_path": "docs\\evidence\\claude-cli\\2312c204-dfcf-4420-bdd7-16034fd68e4c\\jsonl-redacted\\subagents\\agent-a68c51ff827640501.jsonl",
+      "bytes_original": 58309,
+      "lines_original": 27,
+      "sha256_original": "cb8f216e4f2d26e71621b41083abfbc706a4810682b1ba9d6cd3aef8dd2f028c",
+      "sha256_redacted": "cb8f216e4f2d26e71621b41083abfbc706a4810682b1ba9d6cd3aef8dd2f028c",
+      "redactions": 0
+    },
+    {
+      "source_path": "C:\\Users\\dbwns\\.claude\\projects\\C--Users-dbwns\\2312c204-dfcf-4420-bdd7-16034fd68e4c\\subagents\\agent-a6c8253197ccaccd2.jsonl",
+      "synced_path": "docs\\evidence\\claude-cli\\2312c204-dfcf-4420-bdd7-16034fd68e4c\\jsonl-redacted\\subagents\\agent-a6c8253197ccaccd2.jsonl",
+      "bytes_original": 112821,
+      "lines_original": 39,
+      "sha256_original": "dac96d4d047bfc2993c553c66c4b46c49b2b90b74ad67c39051cf61a61deff2f",
+      "sha256_redacted": "dac96d4d047bfc2993c553c66c4b46c49b2b90b74ad67c39051cf61a61deff2f",
+      "redactions": 0
+    },
+    {
+      "source_path": "C:\\Users\\dbwns\\.claude\\projects\\C--Users-dbwns\\2312c204-dfcf-4420-bdd7-16034fd68e4c\\subagents\\agent-aa916715780f31125.jsonl",
+      "synced_path": "docs\\evidence\\claude-cli\\2312c204-dfcf-4420-bdd7-16034fd68e4c\\jsonl-redacted\\subagents\\agent-aa916715780f31125.jsonl",
+      "bytes_original": 75626,
+      "lines_original": 25,
+      "sha256_original": "a70fccfc7fc813286ddb3a6fc972994f8c2bd10e5bab905dd42a314f0314d5d0",
+      "sha256_redacted": "a70fccfc7fc813286ddb3a6fc972994f8c2bd10e5bab905dd42a314f0314d5d0",
+      "redactions": 0
+    },
+    {
+      "source_path": "C:\\Users\\dbwns\\.claude\\projects\\C--Users-dbwns\\2312c204-dfcf-4420-bdd7-16034fd68e4c\\subagents\\agent-ab1a7a9f5b24aef8b.jsonl",
+      "synced_path": "docs\\evidence\\claude-cli\\2312c204-dfcf-4420-bdd7-16034fd68e4c\\jsonl-redacted\\subagents\\agent-ab1a7a9f5b24aef8b.jsonl",
+      "bytes_original": 157819,
+      "lines_original": 29,
+      "sha256_original": "a4c8168753c09b11a6e1c0557b4ffe6b06674291549add7c78c28739bbe8e3b1",
+      "sha256_redacted": "a4c8168753c09b11a6e1c0557b4ffe6b06674291549add7c78c28739bbe8e3b1",
+      "redactions": 0
+    },
+    {
+      "source_path": "C:\\Users\\dbwns\\.claude\\projects\\C--Users-dbwns\\2312c204-dfcf-4420-bdd7-16034fd68e4c\\subagents\\agent-ac3cbb1677d26ff42.jsonl",
+      "synced_path": "docs\\evidence\\claude-cli\\2312c204-dfcf-4420-bdd7-16034fd68e4c\\jsonl-redacted\\subagents\\agent-ac3cbb1677d26ff42.jsonl",
+      "bytes_original": 184958,
+      "lines_original": 47,
+      "sha256_original": "4169516dbb35093fa4f4a24a7e490c6ba969c2ea8228c23dd30bc20dafdeca8a",
+      "sha256_redacted": "4169516dbb35093fa4f4a24a7e490c6ba969c2ea8228c23dd30bc20dafdeca8a",
+      "redactions": 0
+    },
+    {
+      "source_path": "C:\\Users\\dbwns\\.claude\\projects\\C--Users-dbwns\\2312c204-dfcf-4420-bdd7-16034fd68e4c\\subagents\\agent-ac88ec384542fff49.jsonl",
+      "synced_path": "docs\\evidence\\claude-cli\\2312c204-dfcf-4420-bdd7-16034fd68e4c\\jsonl-redacted\\subagents\\agent-ac88ec384542fff49.jsonl",
+      "bytes_original": 51392,
+      "lines_original": 16,
+      "sha256_original": "bbea92c20b8df494e76accb98a64c8906e2c59b3c71804ac2322b8a5e94e62f6",
+      "sha256_redacted": "bbea92c20b8df494e76accb98a64c8906e2c59b3c71804ac2322b8a5e94e62f6",
+      "redactions": 0
+    },
+    {
+      "source_path": "C:\\Users\\dbwns\\.claude\\projects\\C--Users-dbwns\\2312c204-dfcf-4420-bdd7-16034fd68e4c\\subagents\\agent-ac965331ea4dd88f0.jsonl",
+      "synced_path": "docs\\evidence\\claude-cli\\2312c204-dfcf-4420-bdd7-16034fd68e4c\\jsonl-redacted\\subagents\\agent-ac965331ea4dd88f0.jsonl",
+      "bytes_original": 128716,
+      "lines_original": 17,
+      "sha256_original": "3e9b44c39df9ad45af4c1d443cbead51719f9a26ceb68188c6fa24bd83e70ae5",
+      "sha256_redacted": "3e9b44c39df9ad45af4c1d443cbead51719f9a26ceb68188c6fa24bd83e70ae5",
+      "redactions": 0
+    },
+    {
+      "source_path": "C:\\Users\\dbwns\\.claude\\projects\\C--Users-dbwns\\2312c204-dfcf-4420-bdd7-16034fd68e4c\\subagents\\agent-af00fbe31f4375c7e.jsonl",
+      "synced_path": "docs\\evidence\\claude-cli\\2312c204-dfcf-4420-bdd7-16034fd68e4c\\jsonl-redacted\\subagents\\agent-af00fbe31f4375c7e.jsonl",
+      "bytes_original": 625481,
+      "lines_original": 36,
+      "sha256_original": "057d3ec8d935de904bc2967d036a46cd734136662bb3e0db55dbdf9f4f7ac429",
+      "sha256_redacted": "057d3ec8d935de904bc2967d036a46cd734136662bb3e0db55dbdf9f4f7ac429",
+      "redactions": 0
+    }
+  ]
+}
