@@ -1,6 +1,6 @@
-# 독립 검증: opencode 핸드오프
+# 보조 검증: opencode 핸드오프
 
-NaN-SE는 Claude CLI(Claude Code)로 개발했습니다. 같은 도구로 자기 결과를 검증하면 편향되므로, 마감 전에 다른 AI 코딩 에이전트인 oh-my-opencode(GPT-5.5)에 저장소를 그대로 넘겨 다시 확인했습니다. 개발 모델(Claude)과 검증 모델(GPT-5.5)을 일부러 갈라서, 같은 모델이 자기 결과를 봐주는 상황을 피했습니다. 아래 프롬프트를 그 세션에 그대로 넣고 돌렸습니다.
+NaN-SE는 Claude CLI(Claude Code)로 개발했습니다. 같은 도구로 자기 결과를 다시 보면 편향될 수 있으므로, 마감 전에 다른 AI 코딩 에이전트인 oh-my-opencode(GPT-5.5)에 저장소를 넘겨 보조 검증을 했습니다. 이 검증은 제3자 감사나 완전한 정합성 증명이 아니라, 개발에 쓴 Claude CLI와 다른 모델/도구로 핵심 주장과 증거를 한 번 더 대조한 절차입니다. 아래 프롬프트를 그 세션에 그대로 넣고 돌렸습니다.
 
 ## 검증자에게 넣은 프롬프트
 
@@ -33,4 +33,4 @@ NaN-SE는 Claude CLI(Claude Code)로 개발했습니다. 같은 도구로 자기
 
 검증 결과, (a) `nanse/metrics/`에는 LLM/provider/network 호출 키워드가 없었고, (b) `nanse trace`에서 REQ-01~REQ-04가 모두 `complete`였고, (c) `python -m pytest -q`는 `40 passed, 1 warning`으로 끝났습니다. `nanse analyze examples/auth_service.py`도 두 번 실행해 출력이 완전히 같았고, AuthService는 LCOM4=3으로 SRP 위반 신호가 잡혔습니다.
 
-Claude CLI 원문 로그는 `docs/evidence/claude-cli/2312c204-dfcf-4420-bdd7-16034fd68e4c/`에 sync했습니다. 실제 API key처럼 보이는 값 1개가 있어 저장소에는 무가공 원문 대신 redacted JSONL을 두고, 원본 경로·라인 수·SHA256은 `manifest.json`에 남겼습니다.
+Claude CLI 원문 로그는 `docs/evidence/claude-cli/2312c204-dfcf-4420-bdd7-16034fd68e4c/`에 sync했습니다. 실제 API key처럼 보이는 값 1개가 있어 저장소에는 무가공 원문 대신 redacted JSONL을 두고, 원본 경로·라인 수·SHA256은 `manifest.json`에 남겼습니다. GPT-5.5의 역할은 구현 생성이 아니라, 저장소 상태와 보고서 주장이 서로 맞는지 확인하고 표현 과장을 줄이는 검토·증거 동기화에 한정했습니다.
