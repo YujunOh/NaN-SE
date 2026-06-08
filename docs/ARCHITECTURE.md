@@ -19,7 +19,7 @@
 ```mermaid
 flowchart TB
     User((사용자))
-    Anthropic[Anthropic API<br/>Haiku · 설명만]
+    Anthropic[LLM API<br/>Anthropic Haiku 기본 · Gemini 교체 가능<br/>설명만]
 
     subgraph CLI["nanse CLI"]
         AN[analyze · 검출]
@@ -193,7 +193,7 @@ erDiagram
 
 ```
 nanse analyze <file>          # 결정론적 메트릭 검출 (LLM 없음)
-nanse learn <file>            # 위반 finding을 학습 카드로 설명 (ANTHROPIC_API_KEY 필요)
+nanse learn <file>            # 위반 finding을 학습 카드로 설명 (ANTHROPIC_API_KEY 또는 GEMINI_API_KEY 필요)
 nanse cards                   # 미검수 학습 카드 목록
 nanse review <CARD-NNN>       # 카드 한 장을 띄워 채택/거절
 nanse trace [--gaps]          # 요구(UC)↔코드↔테스트 존재 검증 매트릭스 + gap (LLM 없음)
@@ -214,7 +214,7 @@ nanse ev / fp add / process-log                  # EV / FP / Process Log 옵션
 
 ## 6. 보안·위험 메모
 
-검출은 로컬 계산이라 코드를 외부로 보내지 않는다. 학습 카드 생성 시에만 대상 코드가 Anthropic API로 전송되며, 이 전송이 유일한 보안 risk다(로컬 모델 실행으로 보강 가능). 주요 실패 대응(REQUIREMENTS 5절 worst-case와 매핑):
+검출은 로컬 계산이라 코드를 외부로 보내지 않는다. 학습 카드 생성 시에만 대상 코드가 LLM API(Anthropic 기본·Gemini 교체 가능)로 전송되며, 이 전송이 유일한 보안 risk다(로컬 모델 실행으로 보강 가능). 주요 실패 대응(REQUIREMENTS 5절 worst-case와 매핑):
 
 | 위험 | 대응 |
 |---|---|

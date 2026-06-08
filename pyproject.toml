@@ -23,6 +23,7 @@ nanse = "nanse.cli:app"
 dev = ["pytest>=8"]
 ui = ["streamlit>=1.30"]
 api = ["fastapi>=0.110", "uvicorn>=0.29"]
+gemini = ["google-genai>=1"]
 
 [tool.setuptools.packages.find]
 include = ["nanse*"]

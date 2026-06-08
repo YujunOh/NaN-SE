@@ -149,7 +149,7 @@ sequenceDiagram
     participant U as User
     participant MA as Metric Analyzer
     participant LC as Learning Card Generator
-    participant LLM as Haiku 설명층
+    participant LLM as LLM 설명층 (Anthropic·Gemini)
 
     MA->>LC: 확정 finding (LCOM4=3, SRP)
     LC->>LLM: "왜 위반이고 어떻게 고치는지 설명" prompt

@@ -68,23 +68,17 @@ class LearningCard(BaseModel):
 ## 3. 카드 생성 파이프라인 (본인 구현)
 
 ```python
-from anthropic import Anthropic
-
-def generate_card(violation: SolidViolation) -> LearningCard:
+def generate_card(violation: SolidViolation, complete=None) -> LearningCard:
     # 1. 구조화된 prompt 빌드 (본인 템플릿)
     prompt = build_learning_card_prompt(violation)
-    
-    # 2. LLM 호출 (Haiku, temperature=0.3)
-    client = Anthropic()
-    response = client.messages.create(
-        model="claude-haiku-4-5-20251001",
-        max_tokens=1500,
-        temperature=0.3,
-        messages=[{"role": "user", "content": prompt}],
-    )
-    
+
+    # 2. LLM 호출 (complete 주입점 하나. 기본 default_complete가
+    #    provider를 고른다 — Anthropic Haiku 기본, GEMINI_API_KEY 시 Gemini Flash)
+    complete = complete or default_complete
+    raw = complete(prompt)
+
     # 3. 응답을 Pydantic 모델로 파싱 (본인 구현)
-    parsed = parse_llm_response(response.content[0].text)
+    parsed = parse_llm_response(raw)
     
     # 4. 카드 생성 + DB 저장 (본인 schema)
     card = LearningCard(
@@ -226,7 +220,7 @@ $ nanse review CARD-005
 | 데이터 모델 (Pydantic) | 본인 | `nanse/learning_card/models.py` |
 | 카드 생성 파이프라인 | 본인 | `nanse/learning_card/generator.py` |
 | LLM prompt 템플릿 | 본인 | `nanse/learning_card/prompts.py` |
-| **자연어 콘텐츠 생성** | **LLM (Claude Haiku)** | Anthropic API 호출 |
+| **자연어 콘텐츠 생성** | **LLM (provider 교체 가능)** | Anthropic Haiku 기본, GEMINI_API_KEY 시 Gemini Flash |
 | 응답 파싱·검증 (Pydantic) | 본인 | `nanse/learning_card/parser.py` |
 | 사용자 검수 인터페이스 (CLI) | 본인 | `nanse/cli/__init__.py` (`cards`·`review`) |
 | DB 저장·조회 | 본인 | `nanse/db/store.py` |

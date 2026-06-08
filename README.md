@@ -23,7 +23,7 @@ AI coding agent는 *무엇을 만들지* 정한다. NaN-SE는 그 결과물이 �
 | 1. 요구분석 | [REQUIREMENTS.md](./docs/REQUIREMENTS.md) — 페르소나·5W1H 페인포인트·유스케이스 다이어그램(include/extend)·비기능 요구·신뢰성 요구 |
 | 2. 설계 (UML) | [ARCHITECTURE.md](./docs/ARCHITECTURE.md) — 클래스 다이어그램·as-built 구조·ER 스키마, 그리고 REQUIREMENTS의 worst-case 시퀀스 다이어그램 |
 | 3. 구현 | 아래 **빠른 시작** + **동작 모습**. 컨테이너 실행은 `Dockerfile`·`docker-compose.yml` |
-| 4. 테스트 | 아래 **테스트 실행**(pytest 36: 단위·통합·회귀·스모크) + CI([`.github/workflows/ci.yml`])가 커밋마다 자동 검증 |
+| 4. 테스트 | 아래 **테스트 실행**(pytest 40: 단위·통합·회귀·스모크·provider) + CI([`.github/workflows/ci.yml`])가 커밋마다 자동 검증 |
 | 5. 형상관리·프로세스 | 커밋 이력 + [DISCUSSION_LOG.md](./docs/DISCUSSION_LOG.md)(일자별 결정·피벗) + `.github` 이슈/PR 템플릿 |
 | 6. 과제 평가 | [REPORT.md](./docs/REPORT.md) — 위 전 과정의 프로세스 적용과 lessons learned |
 
@@ -52,7 +52,8 @@ cd web && npm install && npm run dev   # http://localhost:5173
 ```bash
 nanse analyze examples/auth_service.py   # 결정론적 검출만 (LLM 없음, LCOM4=3 SRP 위반 출력)
 
-export ANTHROPIC_API_KEY=sk-...          # 학습 카드 생성에만 필요
+export ANTHROPIC_API_KEY=sk-...          # 학습 카드 생성에만 필요 (기본 provider)
+# 또는 Gemini로: pip install -e ".[gemini]"; export GEMINI_API_KEY=...; export NANSE_LLM=gemini
 nanse learn examples/auth_service.py     # 위반을 학습 카드로 설명
 nanse cards                              # 미검수 카드 목록
 nanse review CARD-001                    # 카드 한 장을 띄워 채택/거절
@@ -61,14 +62,14 @@ nanse trace                              # 요구(UC)↔코드↔테스트 추�
 
 ## 테스트 실행
 
-검출·요구 추적·통합 흐름을 회귀 검증하는 pytest 36개가 있다. 저장소 루트에서 바로 돌릴 수 있다.
+검출·요구 추적·통합 흐름을 회귀 검증하는 pytest 40개가 있다. 저장소 루트에서 바로 돌릴 수 있다.
 
 ```bash
 pip install -e ".[dev]"   # pytest 설치 (이미 .[api]를 깔았다면 pytest만 추가됨)
 python -m pytest -q
 ```
 
-기대 출력은 `36 passed`다. 커버 범위는 다음과 같다.
+기대 출력은 `40 passed`다. 커버 범위는 다음과 같다.
 
 | 파일 | 검증 대상 |
 |---|---|
@@ -80,6 +81,7 @@ python -m pytest -q
 | `tests/test_store.py` | SQLite 저장·조회·검수 상태 |
 | `tests/test_smoke.py` | 예시 분석이 끝까지 도는지 1차 점검 |
 | `tests/test_regression.py` | god class LCOM4=3 고정 (생성자 버그 재발 가드) |
+| `tests/test_provider.py` | LLM provider 라우팅 (NANSE_LLM·키 추론으로 Anthropic·Gemini 선택) |
 
 검출은 결정론적이라 같은 코드에 항상 같은 값이 나오므로 `assert ==`로 값을 고정해 검증한다.
 
@@ -219,7 +221,7 @@ NaN-SE는 하나의 벤더(Claude, GPT, Gemini, 자체 LLM)에 종속되지 않�
 
 - Python 3.11+
 - radon (순환복잡도), 자체 구현 LCOM4 (검출)
-- Anthropic SDK (학습 카드 설명 생성, Haiku)
+- LLM 설명층: Anthropic Haiku 기본, `GEMINI_API_KEY` 설정 시 Gemini Flash (provider 교체 가능, `complete` 주입점 하나)
 - SQLite (finding·학습 카드·검수 상태)
 - CLI: Typer + rich
 - 대시보드: FastAPI + uvicorn (읽기 API), Vite + React + recharts (web)

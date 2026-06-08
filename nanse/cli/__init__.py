@@ -123,7 +123,8 @@ def trace(
 def learn(path: Path, db: Path | None = None) -> None:
     """검출된 위반 finding을 LLM 설명층에 넘겨 학습 카드를 생성·저장한다.
 
-    검출은 결정적, 설명만 LLM. ANTHROPIC_API_KEY 필요.
+    검출은 결정적, 설명만 LLM. ANTHROPIC_API_KEY 또는 GEMINI_API_KEY 필요
+    (NANSE_LLM=anthropic|gemini로 명시 가능, 기본 Anthropic).
     """
     source = path.read_text(encoding="utf-8")
     findings = _collect_findings(source, str(path))

@@ -290,7 +290,7 @@ NaN-SE의 차별점은 다음에서 온다.
 이 12일 prototype은 비전의 0번째 단계다. 직접 써 보면서 다음 흐름으로 확장한다.
 
 1. **즉시 (현재)**: 본인 일상 코딩에 dogfooding. Metric Analyzer가 어떤 위반을 잡고 학습 카드가 얼마나 도움이 되는지 관찰
-2. **단기 (1-3개월)**: choreography 이벤트 버스 정식 분리 (Redis Streams 등). Cursor·opencode 등 multi-vendor 어댑터
+2. **단기 (1-3개월)**: choreography 이벤트 버스 정식 분리 (Redis Streams 등). multi-vendor 어댑터 — 설명층 LLM provider 교체(Anthropic·Gemini)는 이미 적용했고, coding agent(Cursor·opencode) 어댑터로 확장
 3. **중기 (3-6개월)**: 로컬 우선 실행으로 소스가 기기 밖으로 나가지 않게. 사내·민감 도메인 진입 가능
 4. **장기 (6-12개월)**: SaaS 단계. 팀 안에서 한 사람이 뭘 하는지 다른 사람이 자동으로 알 수 있는 협업 트래킹
 

@@ -9,7 +9,7 @@
 | 레이어 | 언어/스택 | 이유 |
 |---|---|---|
 | 검출 | Python (ast, radon) | 정적 분석 생태계가 가장 두껍다. 결정론적 코어 |
-| 설명 | LLM (Anthropic SDK, Python) | 자연어 설명만 담당. 채점 안 함 |
+| 설명 | LLM (provider 교체 가능: Anthropic·Gemini, Python) | 자연어 설명만 담당. 점수 매기기 안 함 |
 | 읽기 API | Python (FastAPI) | 검출·설명 결과가 이미 Python/SQLite에 있으므로 같은 런타임에서 노출 |
 | 표현 | TypeScript (Vite + React) | 인터랙티브 시각화는 브라우저 생태계가 최적 |
 | 저장 | SQLite | 로컬 단일 사용자 도구엔 zero-config가 정답. source of truth |

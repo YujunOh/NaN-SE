@@ -90,9 +90,13 @@ with tab_detect:
             )
 
             st.divider()
-            has_key = bool(os.environ.get("ANTHROPIC_API_KEY"))
+            has_key = bool(
+                os.environ.get("ANTHROPIC_API_KEY")
+                or os.environ.get("GEMINI_API_KEY")
+                or os.environ.get("GOOGLE_API_KEY")
+            )
             if not has_key:
-                st.warning("학습 카드 생성은 ANTHROPIC_API_KEY가 필요합니다. 검출까지는 키 없이 동작합니다.")
+                st.warning("학습 카드 생성은 ANTHROPIC_API_KEY 또는 GEMINI_API_KEY가 필요합니다. 검출까지는 키 없이 동작합니다.")
             if st.button("학습 카드 생성", disabled=not has_key):
                 with Store(UI_DB) as store:
                     session_id = datetime.now().strftime("%Y%m%d-%H%M%S")
